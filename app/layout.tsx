@@ -4,11 +4,11 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
-  title: "iAI",
-  description: "AI chat with rich visualizations and generative UI",
+  title: "tickr",
+  description: "Trading-first AI chat — charts, signals, and trades in conversation",
   icons: {
-    icon: "/iai-logo.jpg",
-    apple: "/iai-logo.jpg",
+    icon: "/tickr-logo.jpg",
+    apple: "/tickr-logo.jpg",
   },
 }
 

@@ -15,14 +15,10 @@ export function ModelSelector({
   const [showAll, setShowAll] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return
     function handleClick(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false)
         setShowAll(false)
       }
@@ -31,7 +27,6 @@ export function ModelSelector({
     return () => document.removeEventListener("mousedown", handleClick)
   }, [open])
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return
     function handleKey(e: KeyboardEvent) {
@@ -52,53 +47,39 @@ export function ModelSelector({
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Trigger */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-heading text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-heading text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
       >
         <span className="text-foreground">{selected.name}</span>
-        <ChevronDown
-          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
-        />
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
-      {/* Popover */}
       {open && (
-        <div className="absolute right-0 bottom-full mb-2 z-50 w-72 rounded-xl border border-border bg-card shadow-lg">
-          {/* Selected model display */}
+        <div className="absolute right-0 bottom-full mb-2 z-50 w-72 rounded-xl border border-border bg-card shadow-[rgba(0,0,0,0.05)_0px_4px_24px]">
           <div className="p-3">
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-heading text-sm font-medium">
-                  {selected.name}
-                </p>
+                <p className="font-heading text-sm font-medium">{selected.name}</p>
                 <p className="mt-0.5 font-body text-xs text-muted-foreground">
                   {selected.description}
                 </p>
               </div>
               <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
             </div>
-            {/* Pricing line */}
             <div className="mt-2 flex gap-3 font-mono text-[11px] text-muted-foreground">
               <span>
-                <span className="text-foreground/70">{selected.inputCost}</span>{" "}
-                input
+                <span className="text-foreground/70">{selected.inputCost}</span> input
               </span>
               <span>
-                <span className="text-foreground/70">
-                  {selected.outputCost}
-                </span>{" "}
-                output
+                <span className="text-foreground/70">{selected.outputCost}</span> output
               </span>
             </div>
           </div>
 
-          {/* Divider */}
           <div className="border-t border-border" />
 
-          {/* More models toggle / list */}
           {!showAll ? (
             <button
               type="button"

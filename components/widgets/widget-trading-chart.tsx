@@ -201,14 +201,13 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
     <div className="my-3 overflow-hidden rounded-xl border border-border bg-card">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-        <div className="flex items-center gap-3">
-          <h3 className="font-heading text-sm font-semibold">{displayName}</h3>
-          <span className="text-xs text-muted-foreground">{symbol}</span>
-          {/* Connection indicator */}
+        <div className="flex items-center gap-2">
+          <h3 className="font-display text-sm">{displayName}</h3>
+          <span className="font-heading text-[11px] text-muted-foreground">{symbol}</span>
           {connectionState === "disconnected" ? (
-            <WifiOff className="h-3.5 w-3.5 text-red-500" />
+            <WifiOff className="h-3 w-3 text-red-500" />
           ) : (
-            <Wifi className="h-3.5 w-3.5 text-green-500" />
+            <Wifi className="h-3 w-3 text-green-500" />
           )}
         </div>
 
@@ -218,7 +217,7 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
             <button
               key={opt}
               onClick={() => setInterval(opt)}
-              className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${
+              className={`rounded-md px-2 py-0.5 font-heading text-[11px] transition-colors ${
                 interval === opt
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -248,7 +247,7 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
       {/* Footer with current price */}
       {latestCandle && (
         <div className="border-t border-border px-4 py-1.5">
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-4 font-heading text-[11px]">
             <span className="text-muted-foreground">
               O <span className="text-foreground">{fmt(latestCandle.open)}</span>
             </span>
@@ -259,7 +258,7 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
               L <span className="text-red-500">{fmt(latestCandle.low)}</span>
             </span>
             <span className="text-muted-foreground">
-              C <span className="text-foreground font-medium">{fmt(latestCandle.close)}</span>
+              C <span className="text-foreground">{fmt(latestCandle.close)}</span>
             </span>
           </div>
         </div>
