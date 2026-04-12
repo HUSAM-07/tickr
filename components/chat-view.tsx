@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { MessageParts } from "@/components/message-parts"
 import { LoadingMascot } from "@/components/loading-mascot"
-import { MascotIcon, MascotCharacter } from "@/components/mascot-icon"
+import { MascotCharacter } from "@/components/mascot-icon"
 import { ModelSelector } from "@/components/model-selector"
 import { useConversationsContext } from "@/hooks/conversations-context"
 import { DEFAULT_MODEL, type ModelConfig } from "@/lib/models"

@@ -14,8 +14,8 @@ import {
 import { useChartData } from "@/hooks/use-chart-data"
 import { useTradingContext } from "@/hooks/trading-context"
 import { getSymbolName } from "@/lib/deriv/utils"
-import { INTERVAL_MAP } from "@/lib/deriv/constants"
 import { Loader2, Wifi, WifiOff } from "lucide-react"
+import type { CandleData } from "@/lib/deriv/types"
 
 export type TradingChartData = {
   symbol: string
@@ -26,15 +26,6 @@ export type TradingChartData = {
 
 const INTERVAL_OPTIONS = ["1m", "5m", "15m", "1h", "4h", "1d"]
 
-/** Resolve a CSS variable to its computed color value */
-function resolveColor(varName: string, fallback: string): string {
-  if (typeof window === "undefined") return fallback
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(varName)
-    .trim()
-  return value || fallback
-}
-
 export function WidgetTradingChart({ data }: { data: TradingChartData }) {
   const { symbol, interval: initialInterval, title, show_indicators } = data
   const [interval, setInterval] = useState(initialInterval || "1m")
@@ -43,7 +34,6 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick", Time> | null>(null)
   const smaSeriesRef = useRef<ISeriesApi<"Line", Time> | null>(null)
   const { connectionState, connect } = useTradingContext()
-  const isDark = typeof window !== "undefined" && document.documentElement.classList.contains("dark")
 
   const { candles, latestCandle, isLoading, error } = useChartData(
     connectionState === "disconnected" ? null : symbol,
@@ -52,15 +42,14 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
 
   // Auto-connect if not connected
   useEffect(() => {
-    if (connectionState === "disconnected") {
-      connect()
-    }
+    if (connectionState === "disconnected") connect()
   }, [connectionState, connect])
 
   // Create chart instance
   useEffect(() => {
     if (!chartContainerRef.current) return
 
+    const isDark = document.documentElement.classList.contains("dark")
     const textColor = isDark ? "#a1a1aa" : "#71717a"
     const gridColor = isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.06)"
     const borderColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"
@@ -84,9 +73,7 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
         secondsVisible: false,
         borderColor,
       },
-      rightPriceScale: {
-        borderColor,
-      },
+      rightPriceScale: { borderColor },
       crosshair: {
         vertLine: { color: crosshairColor, width: 1, style: 3 },
         horzLine: { color: crosshairColor, width: 1, style: 3 },
@@ -106,7 +93,6 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
     chartRef.current = chart
     candleSeriesRef.current = candleSeries
 
-    // Resize handler
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         chart.applyOptions({ width: entry.contentRect.width })
@@ -121,47 +107,12 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
       candleSeriesRef.current = null
       smaSeriesRef.current = null
     }
-  }, []) // Only create chart once
-
-  // Update candle data when historical data loads
-  useEffect(() => {
-    if (!candleSeriesRef.current || candles.length === 0) return
-
-    const formattedCandles: CandlestickData<Time>[] = candles.map((c) => ({
-      time: c.time as Time,
-      open: c.open,
-      high: c.high,
-      low: c.low,
-      close: c.close,
-    }))
-
-    candleSeriesRef.current.setData(formattedCandles)
-    chartRef.current?.timeScale().fitContent()
-
-    // Add SMA overlay if requested
-    if (show_indicators?.includes("sma_20") && candles.length >= 20) {
-      addSmaOverlay(candles, 20)
-    }
-  }, [candles, show_indicators])
-
-  // Update chart with live candle data
-  useEffect(() => {
-    if (!candleSeriesRef.current || !latestCandle) return
-
-    candleSeriesRef.current.update({
-      time: latestCandle.time as Time,
-      open: latestCandle.open,
-      high: latestCandle.high,
-      low: latestCandle.low,
-      close: latestCandle.close,
-    })
-  }, [latestCandle])
+  }, [])
 
   const addSmaOverlay = useCallback(
-    (candleData: typeof candles, period: number) => {
+    (candleData: CandleData[], period: number) => {
       if (!chartRef.current) return
 
-      // Remove existing SMA series
       if (smaSeriesRef.current) {
         chartRef.current.removeSeries(smaSeriesRef.current)
       }
@@ -191,10 +142,41 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
     []
   )
 
-  // Format price with appropriate precision for the symbol
+  // Update candle data when historical data loads
+  useEffect(() => {
+    if (!candleSeriesRef.current || candles.length === 0) return
+
+    const formattedCandles: CandlestickData<Time>[] = candles.map((c) => ({
+      time: c.time as Time,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+    }))
+
+    candleSeriesRef.current.setData(formattedCandles)
+    chartRef.current?.timeScale().fitContent()
+
+    if (show_indicators?.includes("sma_20") && candles.length >= 20) {
+      addSmaOverlay(candles, 20)
+    }
+  }, [candles, show_indicators, addSmaOverlay])
+
+  // Update chart with live candle data
+  useEffect(() => {
+    if (!candleSeriesRef.current || !latestCandle) return
+
+    candleSeriesRef.current.update({
+      time: latestCandle.time as Time,
+      open: latestCandle.open,
+      high: latestCandle.high,
+      low: latestCandle.low,
+      close: latestCandle.close,
+    })
+  }, [latestCandle])
+
   const decimals = symbol.startsWith("frx") ? 5 : symbol.startsWith("cry") ? 2 : 2
   const fmt = (v: number) => v.toFixed(decimals)
-
   const displayName = title || getSymbolName(symbol)
 
   return (
@@ -211,7 +193,6 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
           )}
         </div>
 
-        {/* Interval selector */}
         <div className="flex gap-0.5">
           {INTERVAL_OPTIONS.map((opt) => (
             <button
@@ -229,7 +210,7 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
         </div>
       </div>
 
-      {/* Chart area */}
+      {/* Chart */}
       <div className="relative">
         {isLoading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/80">
@@ -244,7 +225,7 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
         <div ref={chartContainerRef} className="h-80" />
       </div>
 
-      {/* Footer with current price */}
+      {/* OHLC footer */}
       {latestCandle && (
         <div className="border-t border-border px-4 py-1.5">
           <div className="flex items-center gap-4 font-heading text-[11px]">
