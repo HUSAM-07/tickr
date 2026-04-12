@@ -5,27 +5,63 @@ import {
   Send,
   Plus,
   AudioLines,
-  Pencil,
-  GraduationCap,
+  CandlestickChart,
+  TrendingUp,
+  Zap,
+  BarChart3,
+  Briefcase,
+  Trophy,
+  type LucideIcon,
 } from "lucide-react"
 import { MessageParts } from "@/components/message-parts"
 import { LoadingMascot } from "@/components/loading-mascot"
+import { MascotIcon, MascotCharacter } from "@/components/mascot-icon"
 import { ModelSelector } from "@/components/model-selector"
 import { useConversationsContext } from "@/hooks/conversations-context"
 import { DEFAULT_MODEL, type ModelConfig } from "@/lib/models"
 import type { Message, MessagePart, SSEEvent } from "@/lib/types"
 
-const actionPills = [
-  { icon: Pencil, label: "Write" },
-  { icon: GraduationCap, label: "Learn" },
+const suggestedPrompts: { icon: LucideIcon; label: string; prompt: string }[] = [
+  {
+    icon: CandlestickChart,
+    label: "Chart V75",
+    prompt: "Show me a live chart of Volatility 75 Index",
+  },
+  {
+    icon: TrendingUp,
+    label: "Analyze EUR/USD",
+    prompt: "Analyze EUR/USD with RSI and Bollinger Bands",
+  },
+  {
+    icon: Zap,
+    label: "Get a signal",
+    prompt: "Give me a trading signal on Volatility 100 Index",
+  },
+  {
+    icon: BarChart3,
+    label: "Compare markets",
+    prompt: "Compare Volatility 25, 50, 75, and 100 indices in a table",
+  },
+  {
+    icon: Briefcase,
+    label: "Portfolio",
+    prompt: "Show my portfolio and trading performance",
+  },
+  {
+    icon: Trophy,
+    label: "Leaderboard",
+    prompt: "Show the trading leaderboard",
+  },
 ]
 
 export function ChatView({
   conversationId,
   initialMessages,
+  initialPrompt,
 }: {
   conversationId: string | null
   initialMessages: Message[]
+  initialPrompt?: string
 }) {
   const { createConversation, updateConversation } = useConversationsContext()
 
@@ -39,25 +75,25 @@ export function ChatView({
   const messagesRef = useRef<Message[]>(messages)
   const convIdRef = useRef<string | null>(conversationId)
 
-  // Sync refs
-  useEffect(() => {
-    messagesRef.current = messages
-  }, [messages])
+  const initialPromptUsed = useRef(false)
 
-  useEffect(() => {
-    convIdRef.current = conversationId
-  }, [conversationId])
+  useEffect(() => { messagesRef.current = messages }, [messages])
+  useEffect(() => { convIdRef.current = conversationId }, [conversationId])
 
-  // Reset messages when conversationId or initialMessages change
+  // Pre-fill input from URL query param (landing page CTA)
+  useEffect(() => {
+    if (initialPrompt && !initialPromptUsed.current) {
+      initialPromptUsed.current = true
+      setInput(initialPrompt)
+    }
+  }, [initialPrompt])
   useEffect(() => {
     setMessages(initialMessages)
     setInput("")
   }, [conversationId]) // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
-
   useEffect(() => {
     const textarea = textareaRef.current
     if (textarea) {
@@ -92,12 +128,10 @@ export function ChatView({
     setInput("")
     setIsStreaming(true)
 
-    // Create conversation if this is a new chat
     let convId = convIdRef.current
     if (!convId) {
       convId = await createConversation()
       convIdRef.current = convId
-      // Update URL without route transition (preserves streaming state)
       window.history.replaceState(null, "", `/chat/${convId}`)
     }
 
@@ -126,7 +160,6 @@ export function ChatView({
 
       const reader = res.body?.getReader()
       const decoder = new TextDecoder()
-
       if (!reader) throw new Error("No response stream")
 
       while (true) {
@@ -143,9 +176,7 @@ export function ChatView({
           try {
             const parsed = JSON.parse(data) as SSEEvent
 
-            if (parsed.type === "error") {
-              throw new Error(parsed.message)
-            }
+            if (parsed.type === "error") throw new Error(parsed.message)
 
             if (parsed.type === "text_delta") {
               updateAssistantParts(assistantId, (parts) => {
@@ -156,10 +187,7 @@ export function ChatView({
                     { ...last, content: last.content + parsed.content },
                   ]
                 }
-                return [
-                  ...parts,
-                  { type: "text" as const, content: parsed.content },
-                ]
+                return [...parts, { type: "text" as const, content: parsed.content }]
               })
             }
 
@@ -175,10 +203,7 @@ export function ChatView({
               ])
             }
           } catch (err) {
-            if (
-              err instanceof Error &&
-              err.message !== "Failed to send message"
-            ) {
+            if (err instanceof Error && err.message !== "Failed to send message") {
               if (data.startsWith("{")) continue
               throw err
             }
@@ -193,16 +218,12 @@ export function ChatView({
             ? `Error: ${error.message}`
             : "Something went wrong. Please try again."
         if (parts.length > 0) {
-          return [
-            ...parts,
-            { type: "text" as const, content: `\n\n${errorText}` },
-          ]
+          return [...parts, { type: "text" as const, content: `\n\n${errorText}` }]
         }
         return [{ type: "text" as const, content: errorText }]
       })
     } finally {
       setIsStreaming(false)
-      // Persist to Supabase after stream completes
       const currentId = convIdRef.current
       if (currentId) {
         await updateConversation(currentId, messagesRef.current)
@@ -221,43 +242,40 @@ export function ChatView({
 
   const inputBox = (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className="rounded-2xl border border-border bg-card shadow-sm">
+      <div className="rounded-2xl border border-border bg-card shadow-[0_0_0_1px_var(--ring)]">
         <textarea
           ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="How can I help you today?"
+          placeholder="Ask about a market, get a signal, or place a trade..."
           rows={1}
-          className="w-full resize-none overflow-hidden bg-transparent px-5 pt-4 pb-2 font-body text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none"
+          className="w-full resize-none overflow-hidden bg-transparent px-4 pt-4 pb-2 font-body text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none md:px-5"
         />
         <div className="flex items-center justify-between px-3 pb-3">
           <button
             type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <Plus className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-2">
-            <ModelSelector
-              selected={selectedModel}
-              onSelect={setSelectedModel}
-            />
+            <ModelSelector selected={selectedModel} onSelect={setSelectedModel} />
             {input.trim() && !isStreaming ? (
               <button
                 type="submit"
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-accent-foreground transition-opacity hover:opacity-90"
+                className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90"
               >
                 <Send className="h-4 w-4" />
               </button>
             ) : isStreaming ? (
-              <div className="flex h-8 w-8 items-center justify-center">
+              <div className="flex h-9 w-9 items-center justify-center">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
               </div>
             ) : (
               <button
                 type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
                 <AudioLines className="h-5 w-5" />
               </button>
@@ -273,22 +291,22 @@ export function ChatView({
       {hasMessages ? (
         <>
           <div className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-3xl px-4 py-8">
+            <div className="mx-auto max-w-3xl px-3 py-4 md:px-4 md:py-8">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`mb-6 ${message.role === "user" ? "flex justify-end" : ""}`}
+                  className={`mb-4 md:mb-6 ${message.role === "user" ? "flex justify-end" : ""}`}
                 >
                   <div
-                    className={`max-w-[85%] ${
+                    className={`${
                       message.role === "user"
-                        ? "rounded-2xl rounded-br-md bg-primary px-4 py-3 text-primary-foreground"
-                        : "pr-8"
+                        ? "max-w-[90%] md:max-w-[85%] rounded-2xl rounded-br-lg bg-secondary dark:bg-foreground/10 px-4 py-2.5 md:px-5 md:py-3 text-foreground"
+                        : "max-w-full md:max-w-[85%] pr-2 md:pr-8"
                     }`}
                   >
                     {message.role === "assistant" && (
-                      <div className="mb-1.5 font-heading text-xs font-medium text-muted-foreground">
-                        iAI
+                      <div className="mb-1.5 font-heading text-[11px] font-medium text-muted-foreground">
+                        tickr
                       </div>
                     )}
                     {message.role === "assistant" &&
@@ -305,39 +323,77 @@ export function ChatView({
             </div>
           </div>
 
-          <div className="shrink-0 px-4 pb-4 pt-2 md:px-6">
+          <div className="shrink-0 border-t border-border/50 px-3 pb-3 pt-2 md:border-t-0 md:px-6 md:pb-4">
             <div className="mx-auto max-w-3xl">
               {inputBox}
-              <p className="mt-2 text-center font-body text-xs text-muted-foreground">
-                iAI can make mistakes. Please double-check responses.
+              <p className="mt-1.5 hidden text-center font-heading text-xs text-muted-foreground md:block">
+                tickr can make mistakes. Please double-check responses.
               </p>
             </div>
           </div>
         </>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center px-4 pb-16">
-          <div className="mb-8">
-            <h1 className="font-display text-3xl font-normal text-foreground/80 md:text-4xl lg:text-[2.6rem]">
-              What shall we think through?
-            </h1>
+        <div className="flex flex-1 flex-col px-3 md:px-4">
+          <div className="flex flex-1 flex-col items-center justify-center">
+            {/* Mascot character + heading */}
+            <div className="mb-6 flex flex-col items-center gap-3 md:mb-8 md:flex-row md:gap-4">
+              <MascotCharacter size={44} />
+              <h1 className="text-center font-display text-2xl text-foreground/80 md:text-left md:text-4xl lg:text-[2.6rem]">
+                What are we trading?
+              </h1>
+            </div>
+
+            <div className="w-full max-w-xl">{inputBox}</div>
+
+            {/* Suggested prompts — 2 rows: 4 + 2 on desktop, horizontal scroll on mobile */}
+            <div className="-mx-3 mt-4 overflow-x-auto px-3 md:mx-0 md:mt-5 md:overflow-visible md:px-0">
+              <div className="flex w-max items-center gap-2 md:hidden">
+                {suggestedPrompts.map(({ icon: Icon, label, prompt }) => (
+                  <button
+                    key={label}
+                    onClick={() => { setInput(prompt); textareaRef.current?.focus() }}
+                    className="flex shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 font-heading text-sm text-muted-foreground shadow-[0_0_0_1px_var(--ring)] transition-all hover:bg-secondary hover:text-foreground"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {/* Desktop: 2 rows */}
+              <div className="hidden md:flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2">
+                  {suggestedPrompts.slice(0, 4).map(({ icon: Icon, label, prompt }) => (
+                    <button
+                      key={label}
+                      onClick={() => { setInput(prompt); textareaRef.current?.focus() }}
+                      className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 font-heading text-sm text-muted-foreground shadow-[0_0_0_1px_var(--ring)] transition-all hover:bg-secondary hover:text-foreground"
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  {suggestedPrompts.slice(4).map(({ icon: Icon, label, prompt }) => (
+                    <button
+                      key={label}
+                      onClick={() => { setInput(prompt); textareaRef.current?.focus() }}
+                      className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 font-heading text-sm text-muted-foreground shadow-[0_0_0_1px_var(--ring)] transition-all hover:bg-secondary hover:text-foreground"
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="w-full max-w-xl">{inputBox}</div>
-
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
-            {actionPills.map(({ icon: Icon, label }) => (
-              <button
-                key={label}
-                className="flex items-center gap-2 rounded-full border border-border px-4 py-2 font-heading text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </button>
-            ))}
-          </div>
+          <p className="py-3 text-center font-heading text-xs text-muted-foreground">
+            tickr can make mistakes. Please double-check responses.
+          </p>
         </div>
       )}
     </>
   )
 }
-

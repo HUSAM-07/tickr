@@ -7,13 +7,13 @@ export function TradingHeader() {
   const { connectionState, balance, currency, connect } = useTradingContext()
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       {/* Connection status */}
       <button
         onClick={() => {
           if (connectionState === "disconnected") connect()
         }}
-        className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium transition-colors hover:bg-secondary"
+        className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1 font-heading text-xs transition-colors hover:bg-secondary"
         title={
           connectionState === "disconnected"
             ? "Click to connect"
@@ -40,11 +40,11 @@ export function TradingHeader() {
         )}
       </button>
 
-      {/* Balance display */}
+      {/* Balance */}
       {balance !== null && (
-        <div className="flex items-center gap-1 rounded-full border border-border px-3 py-1 text-xs">
+        <div className="flex items-center gap-1 rounded-lg border border-border px-3 py-1 font-heading text-xs">
           <span className="text-muted-foreground">{currency}</span>
-          <span className="font-heading font-semibold">
+          <span className="font-medium">
             {balance.toLocaleString("en-US", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -54,7 +54,7 @@ export function TradingHeader() {
       )}
 
       {/* Demo badge */}
-      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+      <span className="rounded-md bg-accent/10 px-2 py-0.5 font-heading text-[10px] font-medium text-accent">
         DEMO
       </span>
     </div>

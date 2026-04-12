@@ -186,6 +186,32 @@ export const tradingTools = [
             type: "number",
             description: "Suggested stake amount",
           },
+          current_price: { type: "number", description: "Current price from analyze_market" },
+          price_change_pct: { type: "number", description: "Price change percentage" },
+          rsi: { type: "number", description: "RSI(14) value from analyze_market" },
+          sma_20: { type: "number", description: "SMA(20) value" },
+          sma_50: { type: "number", description: "SMA(50) value" },
+          macd: {
+            type: "object",
+            properties: {
+              macd: { type: "number" },
+              signal: { type: "number" },
+              histogram: { type: "number" },
+            },
+            description: "MACD values from analyze_market",
+          },
+          bollinger: {
+            type: "object",
+            properties: {
+              upper: { type: "number" },
+              middle: { type: "number" },
+              lower: { type: "number" },
+            },
+            description: "Bollinger Bands from analyze_market",
+          },
+          trend: { type: "string", description: "Trend direction: bullish or bearish" },
+          volatility: { type: "string", description: "Volatility level: high, medium, or low" },
+          atr: { type: "number", description: "ATR(14) value" },
         },
         required: ["symbol", "direction", "confidence", "reasoning"],
       },
@@ -246,7 +272,7 @@ Trading:
 TRADING WORKFLOW:
 1. When a user asks about a market or symbol: call show_trading_chart + analyze_market
 2. When a user wants to trade: ALWAYS call analyze_market first, then place_trade
-3. When showing signals: call analyze_market, interpret the results, then call get_signals
+3. When showing signals: call analyze_market with indicators ["sma", "rsi", "macd", "bollinger", "atr"], interpret the results, then call get_signals and PASS ALL the indicator values (rsi, sma_20, sma_50, macd, bollinger, current_price, price_change_pct, trend, volatility, atr) from the analyze_market result into get_signals. This is CRITICAL — the signal dashboard needs the raw indicator data to render visual cards.
 4. NEVER skip the trade ticket confirmation step — the user must approve every trade
 
 MARKET KNOWLEDGE:

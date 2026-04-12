@@ -154,17 +154,19 @@ export function WidgetTradeTicket({ data }: { data: TradeTicketData }) {
               <button
                 onClick={handleConfirm}
                 disabled={!proposalId}
-                className={`flex-1 rounded-lg py-2 text-sm font-semibold text-white transition-colors ${
+                className={`flex-1 rounded-xl py-2 text-sm font-medium text-white transition-colors ${
                   isRise
                     ? "bg-green-600 hover:bg-green-700 disabled:bg-green-600/50"
                     : "bg-red-600 hover:bg-red-700 disabled:bg-red-600/50"
                 } disabled:cursor-not-allowed`}
+
               >
                 {proposalId ? "Confirm Trade" : "Loading price..."}
               </button>
               <button
                 onClick={() => setState("error")}
-                className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary"
+                className="rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary"
+
               >
                 Cancel
               </button>

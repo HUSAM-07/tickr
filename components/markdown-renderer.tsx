@@ -7,22 +7,22 @@ import type { Components } from "react-markdown"
 const components: Components = {
   // Headings
   h1: ({ children }) => (
-    <h1 className="mb-4 mt-6 first:mt-0 font-heading text-2xl font-medium">
+    <h1 className="mb-4 mt-6 first:mt-0 font-display text-2xl">
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 className="mb-3 mt-5 first:mt-0 font-heading text-xl font-medium">
+    <h2 className="mb-3 mt-5 first:mt-0 font-display text-xl">
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="mb-2 mt-4 first:mt-0 font-heading text-lg font-medium">
+    <h3 className="mb-2 mt-4 first:mt-0 font-display text-lg">
       {children}
     </h3>
   ),
   h4: ({ children }) => (
-    <h4 className="mb-2 mt-3 first:mt-0 font-heading text-base font-medium">
+    <h4 className="mb-2 mt-3 first:mt-0 font-display text-base">
       {children}
     </h4>
   ),
@@ -63,7 +63,6 @@ const components: Components = {
 
   // Inline code
   code: ({ children, className }) => {
-    // Check if this is a code block (has language class) vs inline code
     const isBlock = className?.startsWith("language-")
     if (isBlock) {
       return (
@@ -73,7 +72,7 @@ const components: Components = {
       )
     }
     return (
-      <code className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[13px]">
+      <code className="rounded-md bg-foreground/[0.08] px-1.5 py-0.5 font-mono text-[13px] text-accent dark:bg-foreground/[0.12]">
         {children}
       </code>
     )
@@ -81,7 +80,7 @@ const components: Components = {
 
   // Code blocks
   pre: ({ children }) => (
-    <pre className="my-3 overflow-x-auto rounded-xl bg-secondary p-4 font-mono text-[13px] leading-relaxed last:mb-0">
+    <pre className="my-3 overflow-x-auto rounded-xl bg-foreground/[0.05] dark:bg-foreground/[0.08] border border-border p-4 font-mono text-[13px] leading-relaxed last:mb-0">
       {children}
     </pre>
   ),

@@ -6,7 +6,7 @@
 
 /* ── Custom Font Faces ── */
 
-/* Styrene A — Headlines & Subheadings */
+/* Styrene A — UI / Sans (≈ Anthropic Sans) */
 @font-face {
   font-family: "Styrene A";
   src: url("/fonts/StyreneA-Thin-Trial.woff2") format("woff2");
@@ -63,7 +63,7 @@
   font-display: swap;
 }
 
-/* Tiempos Text — Body Text */
+/* Tiempos Text — Body Serif (≈ Anthropic Serif for body) */
 @font-face {
   font-family: "Tiempos Text";
   src: url("/fonts/test-tiempos-text-vf-roman.woff2") format("woff2-variations");
@@ -97,7 +97,7 @@
   font-display: swap;
 }
 
-/* Tiempos Headline — Large Display */
+/* Tiempos Headline — Large Display (≈ Anthropic Serif for headlines) */
 @font-face {
   font-family: "Tiempos Headline";
   src: url("/fonts/test-tiempos-headline-vf-roman.woff2") format("woff2-variations");
@@ -117,7 +117,10 @@
 /* ── Theme Tokens ── */
 
 @theme inline {
-  /* Font families */
+  /* Font families — Claude mapping:
+     Anthropic Serif → Tiempos Headline (display), Tiempos Text (body serif)
+     Anthropic Sans  → Styrene A (UI, buttons, nav)
+     Anthropic Mono  → system monospace */
   --font-heading: "Styrene A", system-ui, sans-serif;
   --font-body: "Tiempos Text", ui-serif, Georgia, Cambria,
     "Times New Roman", Times, serif;
@@ -136,6 +139,7 @@
   --color-brand-orange: #d97757;
   --color-brand-blue: #6a9bcc;
   --color-brand-green: #788c5d;
+  --color-brand-terracotta: #c96442;
 
   /* Semantic color mappings */
   --color-sidebar-ring: var(--sidebar-ring);
@@ -178,84 +182,84 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* ── Light Mode (Anthropic Brand) ── */
+/* ── Light Mode (Warm Parchment — Claude) ── */
 
 :root {
-  --background: #faf9f5;
+  --background: #f5f4ed;
   --foreground: #141413;
-  --card: #ffffff;
+  --card: #faf9f5;
   --card-foreground: #141413;
-  --popover: #ffffff;
+  --popover: #faf9f5;
   --popover-foreground: #141413;
   --primary: #141413;
   --primary-foreground: #faf9f5;
   --secondary: #e8e6dc;
-  --secondary-foreground: #141413;
+  --secondary-foreground: #4d4c48;
   --muted: #e8e6dc;
-  --muted-foreground: #706f6a;
-  --accent: #d97757;
-  --accent-foreground: #ffffff;
-  --destructive: #c4391c;
+  --muted-foreground: #87867f;
+  --accent: #c96442;
+  --accent-foreground: #faf9f5;
+  --destructive: #b53333;
   --border: #e8e6dc;
   --input: #e8e6dc;
-  --ring: #b0aea5;
-  --chart-1: #d97757;
+  --ring: #d1cfc5;
+  --chart-1: #c96442;
   --chart-2: #6a9bcc;
   --chart-3: #788c5d;
   --chart-4: #b0aea5;
   --chart-5: #141413;
-  --radius: 0.625rem;
-  --sidebar: #faf9f5;
+  --radius: 0.5rem;
+  --sidebar: #f5f4ed;
   --sidebar-foreground: #141413;
   --sidebar-primary: #141413;
   --sidebar-primary-foreground: #faf9f5;
   --sidebar-accent: #e8e6dc;
   --sidebar-accent-foreground: #141413;
-  --sidebar-border: #e8e6dc;
-  --sidebar-ring: #b0aea5;
+  --sidebar-border: #f0eee6;
+  --sidebar-ring: #d1cfc5;
 }
 
-/* ── Dark Mode ── */
+/* ── Dark Mode (Warm Charcoal — Claude) ── */
 
 .dark {
-  --background: #2b2a27;
+  --background: #1a1a18;
   --foreground: #faf9f5;
-  --card: #353431;
+  --card: #262623;
   --card-foreground: #faf9f5;
-  --popover: #353431;
+  --popover: #262623;
   --popover-foreground: #faf9f5;
   --primary: #faf9f5;
   --primary-foreground: #141413;
-  --secondary: #3d3c38;
+  --secondary: #30302e;
   --secondary-foreground: #faf9f5;
-  --muted: #3d3c38;
+  --muted: #30302e;
   --muted-foreground: #b0aea5;
-  --accent: #ae5630;
+  --accent: #d97757;
   --accent-foreground: #faf9f5;
   --destructive: #e05a3a;
-  --border: rgba(250, 249, 245, 0.1);
-  --input: rgba(250, 249, 245, 0.15);
-  --ring: #706f6a;
+  --border: #30302e;
+  --input: #30302e;
+  --ring: #4d4c48;
   --chart-1: #d97757;
   --chart-2: #6a9bcc;
   --chart-3: #788c5d;
   --chart-4: #b0aea5;
   --chart-5: #faf9f5;
-  --sidebar: #2b2a27;
+  --sidebar: #1a1a18;
   --sidebar-foreground: #faf9f5;
   --sidebar-primary: #d97757;
   --sidebar-primary-foreground: #faf9f5;
-  --sidebar-accent: #3d3c38;
+  --sidebar-accent: #30302e;
   --sidebar-accent-foreground: #faf9f5;
-  --sidebar-border: rgba(250, 249, 245, 0.1);
-  --sidebar-ring: #706f6a;
+  --sidebar-border: #30302e;
+  --sidebar-ring: #4d4c48;
 }
 
-/* ── Base Styles ── */
+/* ── Base Styles (Claude Design System) ── */
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground font-body;
@@ -263,8 +267,10 @@
   html {
     @apply font-body;
   }
+  /* Serif for headlines — single weight (500) for authority */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    @apply font-display;
+    font-weight: 500;
   }
 }
 

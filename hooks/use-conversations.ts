@@ -79,10 +79,19 @@ export function useConversations() {
     []
   )
 
-  const deleteConversation = useCallback(async (id: string) => {
-    // Optimistic update
-    setConversations((prev) => prev.filter((c) => c.id !== id))
+  const renameConversation = useCallback(async (id: string, title: string) => {
+    const now = new Date().toISOString()
+    setConversations((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, title, updated_at: now } : c))
+    )
+    await supabase
+      .from("conversations")
+      .update({ title, updated_at: now })
+      .eq("id", id)
+  }, [])
 
+  const deleteConversation = useCallback(async (id: string) => {
+    setConversations((prev) => prev.filter((c) => c.id !== id))
     await supabase.from("conversations").delete().eq("id", id)
   }, [])
 
@@ -107,6 +116,7 @@ export function useConversations() {
     fetchConversation,
     createConversation,
     updateConversation,
+    renameConversation,
     deleteConversation,
     searchConversations,
   }

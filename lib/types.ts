@@ -78,6 +78,17 @@ export type SignalCardData = {
   suggested_duration?: number
   suggested_duration_unit?: string
   suggested_amount?: number
+  // Indicator data for bento dashboard (populated by LLM from analyze_market results)
+  current_price?: number
+  price_change_pct?: number
+  rsi?: number
+  sma_20?: number
+  sma_50?: number
+  macd?: { macd: number; signal: number; histogram: number }
+  bollinger?: { upper: number; middle: number; lower: number }
+  trend?: string
+  volatility?: string
+  atr?: number
 }
 
 export type LeaderboardData = {
