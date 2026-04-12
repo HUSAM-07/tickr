@@ -1,5 +1,5 @@
 import { OpenRouter } from "@openrouter/sdk"
-import { widgetTools, allTools, SYSTEM_PROMPT } from "@/lib/tools"
+import { allTools, SYSTEM_PROMPT } from "@/lib/tools"
 import type { WidgetType } from "@/lib/types"
 import { SMA, RSI, EMA, BollingerBands, MACD, ATR } from "technicalindicators"
 import { INTERVAL_MAP } from "@/lib/deriv/constants"

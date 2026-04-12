@@ -148,7 +148,6 @@ export function WidgetSignalCard({ data }: { data: SignalCardData }) {
     bollinger,
     trend,
     volatility,
-    atr,
   } = data
 
   const isRise = direction === "CALL"

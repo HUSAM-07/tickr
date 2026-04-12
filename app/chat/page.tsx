@@ -1,9 +1,10 @@
 "use client"
 
+import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { ChatView } from "@/components/chat-view"
 
-export default function NewChatPage() {
+function ChatContent() {
   const searchParams = useSearchParams()
   const initialPrompt = searchParams.get("q") ?? undefined
 
@@ -13,5 +14,13 @@ export default function NewChatPage() {
       initialMessages={[]}
       initialPrompt={initialPrompt}
     />
+  )
+}
+
+export default function NewChatPage() {
+  return (
+    <Suspense>
+      <ChatContent />
+    </Suspense>
   )
 }

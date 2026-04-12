@@ -6,6 +6,7 @@ import {
   Plus,
   PanelLeft,
   Search,
+  Lightbulb,
   MoreHorizontal,
   Star,
   Pencil,
@@ -164,6 +165,7 @@ export function ChatSidebar({
   onRename,
   onClose,
   onSearchOpen,
+  onIdeasOpen,
 }: {
   conversations: ConversationSummary[]
   activeId: string | null
@@ -174,14 +176,10 @@ export function ChatSidebar({
   onRename: (id: string) => void
   onClose: () => void
   onSearchOpen: () => void
+  onIdeasOpen: () => void
 }) {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
-  const [starredIds, setStarredIdsState] = useState<Set<string>>(new Set())
-
-  // Load starred on mount
-  useEffect(() => {
-    setStarredIdsState(getStarredIds())
-  }, [])
+  const [starredIds, setStarredIdsState] = useState<Set<string>>(() => getStarredIds())
 
   const toggleStar = useCallback((id: string) => {
     setStarredIdsState((prev) => {
@@ -228,6 +226,13 @@ export function ChatSidebar({
         >
           <Search className="h-4 w-4" />
           Search
+        </button>
+        <button
+          onClick={onIdeasOpen}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 font-heading text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent"
+        >
+          <Lightbulb className="h-4 w-4" />
+          Ideas
         </button>
       </div>
 

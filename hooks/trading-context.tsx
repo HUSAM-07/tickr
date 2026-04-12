@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useMemo,
   useRef,
   type ReactNode,
 } from "react"
@@ -28,63 +29,51 @@ type TradingState = {
 const TradingContext = createContext<TradingState | null>(null)
 
 export function TradingProvider({ children }: { children: ReactNode }) {
-  const clientRef = useRef(getDerivClient())
+  // Stable singleton — getDerivClient() returns the same instance every time
+  const [client] = useState(() => getDerivClient())
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected")
   const [balance, setBalance] = useState<number | null>(null)
   const [currency, setCurrency] = useState("USD")
   const balanceUnsubRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
-    const client = clientRef.current
-    const unsub = client.onConnectionChange((state) => {
-      setConnectionState(state)
-    })
-
-    return () => {
-      unsub()
-    }
-  }, [])
+    const unsub = client.onConnectionChange(setConnectionState)
+    return () => { unsub() }
+  }, [client])
 
   // Subscribe to balance only when authorized (requires login)
   useEffect(() => {
-    const client = clientRef.current
-    if (connectionState === "authorized") {
-      const { unsubscribe } = client.subscribeBalance((data: BalanceResponse) => {
-        if (data.balance) {
-          setBalance(data.balance.balance)
-          setCurrency(data.balance.currency)
-        }
-      })
-      balanceUnsubRef.current = unsubscribe
+    if (connectionState !== "authorized") return
 
-      return () => {
-        unsubscribe()
-        balanceUnsubRef.current = null
+    const { unsubscribe } = client.subscribeBalance((data: BalanceResponse) => {
+      if (data.balance) {
+        setBalance(data.balance.balance)
+        setCurrency(data.balance.currency)
       }
+    })
+    balanceUnsubRef.current = unsubscribe
+
+    return () => {
+      unsubscribe()
+      balanceUnsubRef.current = null
     }
-  }, [connectionState])
+  }, [connectionState, client])
 
-  const connect = useCallback(() => {
-    clientRef.current.connect()
-  }, [])
+  const connect = useCallback(() => { client.connect() }, [client])
+  const disconnect = useCallback(() => { client.disconnect(); setBalance(null) }, [client])
 
-  const disconnect = useCallback(() => {
-    clientRef.current.disconnect()
-    setBalance(null)
-  }, [])
+  const value = useMemo<TradingState>(() => ({
+    client,
+    connectionState,
+    balance,
+    currency,
+    accountType: "demo",
+    connect,
+    disconnect,
+  }), [client, connectionState, balance, currency, connect, disconnect])
 
   return (
-    <TradingContext.Provider
-      value={{
-        client: clientRef.current,
-        connectionState,
-        balance,
-        currency,
-        accountType: "demo", // Phase 5 will add real account support
-        connect,
-        disconnect,
-      }}
-    >
+    <TradingContext.Provider value={value}>
       {children}
     </TradingContext.Provider>
   )

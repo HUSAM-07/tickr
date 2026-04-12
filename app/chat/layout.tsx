@@ -81,6 +81,7 @@ export default function ChatLayout({
               onRename={handleRename}
               onClose={() => setSidebarCollapsed(true)}
               onSearchOpen={() => setSearchOpen(true)}
+              onIdeasOpen={() => router.push("/chat/ideas")}
             />
           </div>
         )}
@@ -105,6 +106,10 @@ export default function ChatLayout({
                 onSearchOpen={() => {
                   setSidebarOpen(false)
                   setSearchOpen(true)
+                }}
+                onIdeasOpen={() => {
+                  setSidebarOpen(false)
+                  router.push("/chat/ideas")
                 }}
               />
             </div>
