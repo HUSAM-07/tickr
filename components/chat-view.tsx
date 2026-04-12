@@ -291,7 +291,7 @@ export function ChatView({
       {hasMessages ? (
         <>
           <div className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-3xl px-3 py-4 md:px-4 md:py-8">
+            <div className="mx-auto max-w-3xl px-4 py-4 md:px-6 md:py-8">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -323,7 +323,7 @@ export function ChatView({
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-border/50 px-3 pb-3 pt-2 md:border-t-0 md:px-6 md:pb-4">
+          <div className="shrink-0 border-t border-border/50 px-4 pb-3 pt-2 md:border-t-0 md:px-6 md:pb-4">
             <div className="mx-auto max-w-3xl">
               {inputBox}
               <p className="mt-1.5 hidden text-center font-heading text-xs text-muted-foreground md:block">
@@ -333,7 +333,7 @@ export function ChatView({
           </div>
         </>
       ) : (
-        <div className="flex flex-1 flex-col px-3 md:px-4">
+        <div className="flex flex-1 flex-col px-4 md:px-6">
           <div className="flex flex-1 flex-col items-center justify-center">
             {/* Mascot character + heading */}
             <div className="mb-6 flex flex-col items-center gap-3 md:mb-8 md:flex-row md:gap-4">
@@ -345,9 +345,10 @@ export function ChatView({
 
             <div className="w-full max-w-xl">{inputBox}</div>
 
-            {/* Suggested prompts — 2 rows: 4 + 2 on desktop, horizontal scroll on mobile */}
-            <div className="-mx-3 mt-4 overflow-x-auto px-3 md:mx-0 md:mt-5 md:overflow-visible md:px-0">
-              <div className="flex w-max items-center gap-2 md:hidden">
+            {/* Suggested prompts — horizontal scroll on mobile with proper padding, 2 rows on desktop */}
+            <div className="mt-4 w-full max-w-xl overflow-x-auto md:mt-5 md:max-w-none md:overflow-visible">
+              {/* Mobile: single scrollable row with padding so first/last pills aren't clipped */}
+              <div className="flex w-max items-center gap-2 pb-2 md:hidden">
                 {suggestedPrompts.map(({ icon: Icon, label, prompt }) => (
                   <button
                     key={label}
@@ -359,7 +360,7 @@ export function ChatView({
                   </button>
                 ))}
               </div>
-              {/* Desktop: 2 rows */}
+              {/* Desktop: 2 centered rows */}
               <div className="hidden md:flex flex-col items-center gap-2">
                 <div className="flex items-center gap-2">
                   {suggestedPrompts.slice(0, 4).map(({ icon: Icon, label, prompt }) => (

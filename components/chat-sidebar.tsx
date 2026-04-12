@@ -194,50 +194,50 @@ export function ChatSidebar({
   const groups = groupConversations(conversations, starredIds)
 
   return (
-    <div className="flex h-full w-[300px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+    <div className="flex h-full w-full lg:w-[300px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+      <div className="flex items-center justify-between px-5 pt-5 pb-2 lg:px-4 lg:pt-4">
         <Link
           href="/"
-          className="font-heading text-base font-medium transition-opacity hover:opacity-70"
+          className="font-display text-2xl transition-opacity hover:opacity-70 lg:font-heading lg:text-base lg:font-medium"
         >
           tickr
         </Link>
         <button
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground lg:h-8 lg:w-8"
         >
-          <PanelLeft className="h-4 w-4" />
+          <PanelLeft className="h-5 w-5 lg:h-4 lg:w-4" />
         </button>
       </div>
 
       {/* Actions */}
-      <div className="px-3 py-1 space-y-0.5">
+      <div className="px-4 py-2 space-y-0.5 lg:px-3 lg:py-1">
         <button
           onClick={onNewChat}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 font-heading text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-heading text-[15px] text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent lg:gap-2 lg:py-2 lg:text-sm"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-5 w-5 lg:h-4 lg:w-4" />
           New chat
         </button>
         <button
           onClick={onSearchOpen}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 font-heading text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-heading text-[15px] text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent lg:gap-2 lg:py-2 lg:text-sm"
         >
-          <Search className="h-4 w-4" />
+          <Search className="h-5 w-5 lg:h-4 lg:w-4" />
           Search
         </button>
         <button
           onClick={onIdeasOpen}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 font-heading text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-heading text-[15px] text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent lg:gap-2 lg:py-2 lg:text-sm"
         >
-          <Lightbulb className="h-4 w-4" />
+          <Lightbulb className="h-5 w-5 lg:h-4 lg:w-4" />
           Ideas
         </button>
       </div>
 
       {/* Conversations list */}
-      <div className="flex-1 overflow-y-auto px-3 pb-3">
+      <div className="flex-1 overflow-y-auto px-4 pb-3 lg:px-3">
         {isLoading ? (
           <div className="space-y-2 px-3 pt-4">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -269,7 +269,7 @@ export function ChatSidebar({
                   <div key={conversation.id} className="group relative">
                     <button
                       onClick={() => onSelect(conversation.id)}
-                      className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-left font-body text-sm transition-colors ${
+                      className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-2.5 text-left font-body text-[15px] transition-colors lg:py-1.5 lg:text-sm ${
                         isActive
                           ? "bg-foreground/10 text-sidebar-foreground"
                           : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
@@ -312,8 +312,8 @@ export function ChatSidebar({
       </div>
 
       {/* Footer */}
-      <div className="border-t border-sidebar-border px-4 py-3">
-        <AnimatedThemeToggler className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground [&>svg]:h-4 [&>svg]:w-4" />
+      <div className="border-t border-sidebar-border px-5 py-4 lg:px-4 lg:py-3">
+        <AnimatedThemeToggler className="flex h-9 w-9 items-center justify-center rounded-lg text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground lg:h-8 lg:w-8 [&>svg]:h-5 [&>svg]:w-5 lg:[&>svg]:h-4 lg:[&>svg]:w-4" />
       </div>
     </div>
   )

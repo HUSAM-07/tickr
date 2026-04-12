@@ -175,51 +175,52 @@ export default function IdeasPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-4xl px-4 py-6 md:px-6 md:py-10">
-        {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <h1 className="font-display text-3xl md:text-4xl">Ideas</h1>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 font-heading text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring md:w-64"
-            />
+        {/* Header — title and search stacked on mobile, side-by-side on desktop */}
+        <h1 className="font-display text-2xl md:text-4xl">Ideas</h1>
+
+        <div className="relative mt-4 md:mt-0 md:absolute md:right-6 md:top-10 md:static">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 font-heading text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring md:w-64"
+          />
+        </div>
+
+        {/* Category tabs — horizontal scroll, no clipping */}
+        <div className="-mx-4 mt-5 overflow-x-auto px-4 md:mx-0 md:mt-6 md:px-0">
+          <div className="flex items-center gap-1 w-max md:w-auto">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`shrink-0 rounded-xl px-4 py-1.5 font-heading text-sm transition-colors ${
+                  activeCategory === cat
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Category tabs */}
-        <div className="mt-6 flex items-center gap-1 overflow-x-auto">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`shrink-0 rounded-xl px-4 py-1.5 font-heading text-sm transition-colors ${
-                activeCategory === cat
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Ideas grid — masonry-style with 3 columns */}
-        <div className="mt-8 columns-1 gap-3 sm:columns-2 lg:columns-3">
+        {/* Ideas — single column on mobile, masonry on desktop */}
+        <div className="mt-6 flex flex-col gap-3 md:mt-8 md:columns-2 md:block md:gap-0 lg:columns-3">
           {filtered.map((idea) => (
             <button
               key={idea.title}
               onClick={() => handleSelect(idea.prompt)}
-              className="mb-3 flex w-full break-inside-avoid flex-col rounded-2xl border border-border bg-card p-5 text-left transition-colors hover:bg-secondary"
+              className="flex w-full flex-col rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-secondary md:mb-3 md:break-inside-avoid md:rounded-2xl md:p-5"
             >
-              <p className="font-display text-[15px] leading-snug">
+              <p className="font-display text-[14px] leading-snug md:text-[15px]">
                 {idea.title}
               </p>
 
-              <div className="mt-4 flex items-center justify-between">
+              <div className="mt-3 flex items-center justify-between md:mt-4">
                 {idea.icon ? (
                   <idea.icon className="h-4 w-4 text-muted-foreground" />
                 ) : (

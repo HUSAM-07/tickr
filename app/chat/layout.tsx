@@ -93,7 +93,7 @@ export default function ChatLayout({
               className="fixed inset-0 z-40 bg-black/50 lg:hidden"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
+            <div className="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[360px] lg:hidden">
               <ChatSidebar
                 conversations={conversations}
                 activeId={activeId}
@@ -137,7 +137,7 @@ export default function ChatLayout({
             </div>
 
             {/* Center: trading header */}
-            <div className="hidden min-[480px]:flex items-center">
+            <div className="flex items-center">
               <TradingHeader />
             </div>
 

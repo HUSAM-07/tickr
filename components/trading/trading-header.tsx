@@ -7,13 +7,13 @@ export function TradingHeader() {
   const { connectionState, balance, currency, connect } = useTradingContext()
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Connection status */}
+    <div className="flex items-center gap-1.5 md:gap-2">
+      {/* Connection status — icon-only on mobile, icon+label on desktop */}
       <button
         onClick={() => {
           if (connectionState === "disconnected") connect()
         }}
-        className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1 font-heading text-xs transition-colors hover:bg-secondary"
+        className="flex items-center gap-1.5 rounded-lg border border-border px-2 py-1 font-heading text-xs transition-colors hover:bg-secondary md:px-3"
         title={
           connectionState === "disconnected"
             ? "Click to connect"
@@ -22,27 +22,27 @@ export function TradingHeader() {
       >
         {connectionState === "disconnected" && (
           <>
-            <WifiOff className="h-3 w-3 text-red-500" />
-            <span className="text-muted-foreground">Connect</span>
+            <WifiOff className="h-3.5 w-3.5 text-red-500 md:h-3 md:w-3" />
+            <span className="hidden text-muted-foreground min-[480px]:inline">Connect</span>
           </>
         )}
         {connectionState === "connecting" && (
           <>
-            <Loader2 className="h-3 w-3 animate-spin text-yellow-500" />
-            <span className="text-muted-foreground">Connecting</span>
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-yellow-500 md:h-3 md:w-3" />
+            <span className="hidden text-muted-foreground min-[480px]:inline">Connecting</span>
           </>
         )}
         {(connectionState === "connected" || connectionState === "authorized") && (
           <>
-            <Wifi className="h-3 w-3 text-green-500" />
-            <span className="text-green-600 dark:text-green-400">Live</span>
+            <Wifi className="h-3.5 w-3.5 text-green-500 md:h-3 md:w-3" />
+            <span className="hidden text-green-600 dark:text-green-400 min-[480px]:inline">Live</span>
           </>
         )}
       </button>
 
-      {/* Balance */}
+      {/* Balance — hidden on small mobile */}
       {balance !== null && (
-        <div className="flex items-center gap-1 rounded-lg border border-border px-3 py-1 font-heading text-xs">
+        <div className="hidden items-center gap-1 rounded-lg border border-border px-3 py-1 font-heading text-xs min-[480px]:flex">
           <span className="text-muted-foreground">{currency}</span>
           <span className="font-medium">
             {balance.toLocaleString("en-US", {
@@ -54,7 +54,7 @@ export function TradingHeader() {
       )}
 
       {/* Demo badge */}
-      <span className="rounded-md bg-accent/10 px-2 py-0.5 font-heading text-[10px] font-medium text-accent">
+      <span className="rounded-md bg-accent/10 px-1.5 py-0.5 font-heading text-[9px] font-medium text-accent md:px-2 md:text-[10px]">
         DEMO
       </span>
     </div>
