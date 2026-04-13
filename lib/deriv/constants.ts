@@ -1,7 +1,11 @@
-/** Deriv WebSocket API constants */
+/** Deriv API constants — new API (api.derivws.com) */
 
-export const DERIV_WS_URL = "wss://ws.derivws.com/websockets/v3"
-export const DERIV_APP_ID = process.env.NEXT_PUBLIC_DERIV_APP_ID || "1089" // 1089 = test app
+export const DERIV_REST_URL = "https://api.derivws.com"
+export const DERIV_WS_PUBLIC = "wss://api.derivws.com/trading/v1/options/ws/public"
+export const DERIV_APP_ID = process.env.NEXT_PUBLIC_DERIV_APP_ID || "32Z5qZ94Sx9Ev8p73z3eY"
+
+/** @deprecated Legacy v3 — kept as fallback */
+export const DERIV_WS_LEGACY = "wss://ws.derivws.com/websockets/v3"
 
 export const HEARTBEAT_INTERVAL = 30_000 // 30s
 export const RECONNECT_BASE_DELAY = 1_000 // 1s
