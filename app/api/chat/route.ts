@@ -74,27 +74,33 @@ async function computeMarketAnalysis(
   const granularity = INTERVAL_MAP[timeframe ?? "5m"] ?? 300
   const count = 200
 
-  // Fetch historical candles from Deriv via WebSocket-style REST endpoint
-  const wsUrl = `https://api.deriv.com/websockets/v3?app_id=${process.env.NEXT_PUBLIC_DERIV_APP_ID || "1089"}`
-  const res = await fetch(wsUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ticks_history: symbol,
-      style: "candles",
-      granularity,
-      count,
-      end: "latest",
-    }),
+  // Fetch candles via short-lived WebSocket to the new public endpoint
+  const data = await new Promise<Record<string, unknown>>(async (resolve, reject) => {
+    const { default: WS } = await import("ws")
+    const ws = new WS("wss://api.derivws.com/trading/v1/options/ws/public")
+    const timeout = setTimeout(() => { ws.close(); reject(new Error("Deriv WS timeout")) }, 15000)
+
+    ws.on("open", () => {
+      ws.send(JSON.stringify({
+        ticks_history: symbol,
+        style: "candles",
+        granularity,
+        count,
+        end: "latest",
+        req_id: 1,
+      }))
+    })
+    ws.on("message", (msg: Buffer) => {
+      clearTimeout(timeout)
+      const parsed = JSON.parse(msg.toString())
+      ws.close()
+      resolve(parsed)
+    })
+    ws.on("error", (err: Error) => { clearTimeout(timeout); reject(err) })
   })
 
-  if (!res.ok) {
-    throw new Error(`Deriv API request failed: ${res.status}`)
-  }
-
-  const data = await res.json()
-  if (data.error) {
-    throw new Error(data.error.message || "Failed to fetch market data")
+  if ((data as { error?: { message: string } }).error) {
+    throw new Error((data as { error: { message: string } }).error.message || "Failed to fetch market data")
   }
 
   const candles = data.candles as Array<{

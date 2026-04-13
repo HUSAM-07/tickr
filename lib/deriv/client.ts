@@ -1,7 +1,8 @@
 "use client"
 
 import {
-  DERIV_WS_URL,
+  DERIV_WS_PUBLIC,
+  DERIV_REST_URL,
   DERIV_APP_ID,
   HEARTBEAT_INTERVAL,
   RECONNECT_BASE_DELAY,
@@ -41,28 +42,31 @@ class DerivWSClient {
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null
   private reconnectAttempts = 0
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
-  private authToken: string | null = null
+  private wsUrl: string | null = null // Stores authenticated WS URL for reconnect
 
   // ── Connection lifecycle ──
 
+  /** Connect to Deriv public WebSocket (no auth — market data only) */
   connect(): void {
+    this.connectToUrl(DERIV_WS_PUBLIC)
+  }
+
+  /** Connect to a specific WS URL (public or authenticated) */
+  private connectToUrl(url: string): void {
     if (this.ws && (this.state === "connected" || this.state === "connecting" || this.state === "authorized")) {
       return
     }
 
     this.setState("connecting")
-    const url = `${DERIV_WS_URL}?app_id=${DERIV_APP_ID}`
+    this.wsUrl = url
     this.ws = new WebSocket(url)
 
     this.ws.onopen = () => {
-      this.setState("connected")
+      // If connected to an OTP URL (demo/real), we're already authorized
+      const isAuthenticated = url.includes("/ws/demo") || url.includes("/ws/real")
+      this.setState(isAuthenticated ? "authorized" : "connected")
       this.reconnectAttempts = 0
       this.startHeartbeat()
-
-      // Re-authorize if we had a token
-      if (this.authToken) {
-        this.authorize(this.authToken).catch(console.error)
-      }
     }
 
     this.ws.onmessage = (event: MessageEvent) => {
@@ -105,15 +109,40 @@ class DerivWSClient {
     return this.state
   }
 
-  // ── Auth ──
+  // ── Auth (new API: PAT → OTP → authenticated WebSocket) ──
 
-  async authorize(token: string): Promise<DerivResponse> {
-    this.authToken = token
-    const response = await this.send({ authorize: token })
-    if (!response.error) {
-      this.setState("authorized")
+  /**
+   * Authenticate using a PAT token. Fetches an OTP via REST,
+   * disconnects from public WS, and reconnects to the authenticated URL.
+   */
+  async authorize(pat: string, accountId: string): Promise<void> {
+    // Step 1: Get OTP from REST API
+    const res = await fetch(
+      `${DERIV_REST_URL}/trading/v1/options/accounts/${accountId}/otp`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${pat}`,
+          "Deriv-App-ID": DERIV_APP_ID,
+        },
+      }
+    )
+
+    if (!res.ok) {
+      throw new Error(`Auth failed: ${res.status}`)
     }
-    return response
+
+    const json = await res.json() as { data: { url: string } }
+    const authenticatedUrl = json.data.url
+
+    // Step 2: Disconnect from public WS and reconnect to authenticated URL
+    if (this.ws) {
+      this.reconnectAttempts = MAX_RECONNECT_ATTEMPTS // prevent auto-reconnect during switch
+      this.ws.close()
+      this.ws = null
+    }
+    this.reconnectAttempts = 0
+    this.connectToUrl(authenticatedUrl)
   }
 
   // ── Core send/receive ──
@@ -354,7 +383,8 @@ class DerivWSClient {
     this.reconnectAttempts++
 
     this.reconnectTimer = setTimeout(() => {
-      this.connect()
+      // Reconnect to the same URL we were connected to (public or authenticated)
+      this.connectToUrl(this.wsUrl ?? DERIV_WS_PUBLIC)
     }, delay)
   }
 
