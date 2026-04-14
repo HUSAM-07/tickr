@@ -11,7 +11,7 @@ export const tradingTools = [
           symbol: {
             type: "string",
             description:
-              "Deriv symbol ID. Examples: 'R_75' (Volatility 75), 'R_100' (Volatility 100), 'R_50' (Volatility 50), 'R_25' (Volatility 25), 'R_10' (Volatility 10), 'frxEURUSD' (EUR/USD), 'frxGBPUSD' (GBP/USD), 'BOOM1000N' (Boom 1000), 'CRASH1000N' (Crash 1000)",
+              "Deriv symbol ID. Examples: 'R_75' (Volatility 75), 'R_100' (Volatility 100), 'R_50', 'R_25', 'R_10', 'frxEURUSD' (EUR/USD), 'frxGBPUSD' (GBP/USD), 'cryBTCUSD' (Bitcoin), 'cryETHUSD' (Ethereum), 'BOOM1000' (Boom 1000), 'CRASH1000' (Crash 1000), 'frxXAUUSD' (Gold)",
           },
           interval: {
             type: "string",
@@ -275,11 +275,18 @@ TRADING WORKFLOW:
 3. When showing signals: call analyze_market with indicators ["sma", "rsi", "macd", "bollinger", "atr"], interpret the results, then call get_signals and PASS ALL the indicator values (rsi, sma_20, sma_50, macd, bollinger, current_price, price_change_pct, trend, volatility, atr) from the analyze_market result into get_signals. This is CRITICAL — the signal dashboard needs the raw indicator data to render visual cards.
 4. NEVER skip the trade ticket confirmation step — the user must approve every trade
 
-MARKET KNOWLEDGE:
-- Synthetic indices (R_10, R_25, R_50, R_75, R_100): Available 24/7, not affected by real-world events
-- Crash/Boom (BOOM300N, BOOM500N, BOOM1000N, CRASH300N, CRASH500N, CRASH1000N): Spike indices
-- Forex: frxEURUSD, frxGBPUSD, frxUSDJPY, frxAUDUSD, etc.
+MARKET KNOWLEDGE (use these EXACT symbol IDs):
+- Volatility indices (24/7): R_10, R_25, R_50, R_75, R_100
+- Volatility 1s indices (24/7): 1HZ10V, 1HZ25V, 1HZ50V, 1HZ75V, 1HZ100V
+- Boom/Crash (NO "N" suffix): BOOM500, BOOM600, BOOM900, BOOM1000, CRASH500, CRASH600, CRASH900, CRASH1000
+- Jump indices: JD10, JD25, JD50, JD75, JD100
+- Forex: frxEURUSD, frxGBPUSD, frxUSDJPY, frxAUDUSD, frxEURGBP, frxGBPJPY, frxEURJPY
+- Crypto: cryBTCUSD (Bitcoin), cryETHUSD (Ethereum) — NOT frxBTCUSD
+- Commodities: frxXAUUSD (Gold), frxXAGUSD (Silver)
+- Stock indices: OTC_NDX (US Tech 100), OTC_SPC (US 500), OTC_DJI (Wall Street 30)
 - Contract types: Rise/Fall (CALL/PUT), Touch/No Touch, Digits (Match/Differ/Over/Under/Even/Odd)
+
+IMPORTANT: Bitcoin is cryBTCUSD, Ethereum is cryETHUSD. NEVER use frxBTCUSD or frxETHUSD — those are WRONG.
 
 RISK DISCLAIMERS:
 - Remind users that binary options carry significant risk of loss
