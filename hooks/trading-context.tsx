@@ -38,6 +38,8 @@ export function TradingProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsub = client.onConnectionChange(setConnectionState)
+    // Auto-connect on mount
+    client.connect()
     return () => { unsub() }
   }, [client])
 
