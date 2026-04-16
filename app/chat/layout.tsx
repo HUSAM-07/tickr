@@ -10,6 +10,7 @@ import { useConversations } from "@/hooks/use-conversations"
 import { AnnouncementToast } from "@/components/announcement-toast"
 import { ConversationsProvider } from "@/hooks/conversations-context"
 import { TradingProvider } from "@/hooks/trading-context"
+import { MarketDataProvider } from "@/hooks/market-data-context"
 import { TradingHeader } from "@/components/trading/trading-header"
 
 export default function ChatLayout({
@@ -66,6 +67,7 @@ export default function ChatLayout({
 
   return (
     <TradingProvider>
+    <MarketDataProvider>
     <ConversationsProvider value={conversationData}>
       <div className="flex h-svh">
         {/* Desktop sidebar — collapsible */}
@@ -190,6 +192,7 @@ export default function ChatLayout({
       {/* Announcement toast */}
       <AnnouncementToast />
     </ConversationsProvider>
+    </MarketDataProvider>
     </TradingProvider>
   )
 }
