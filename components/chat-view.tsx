@@ -74,19 +74,163 @@ export function ChatView({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const messagesRef = useRef<Message[]>(messages)
   const convIdRef = useRef<string | null>(conversationId)
+  const isStreamingRef = useRef(false)
+  const selectedModelRef = useRef(selectedModel)
 
   const initialPromptUsed = useRef(false)
 
   useEffect(() => { messagesRef.current = messages }, [messages])
   useEffect(() => { convIdRef.current = conversationId }, [conversationId])
+  useEffect(() => { isStreamingRef.current = isStreaming }, [isStreaming])
+  useEffect(() => { selectedModelRef.current = selectedModel }, [selectedModel])
 
-  // Pre-fill input from URL query param (landing page CTA)
+  const updateAssistantParts = useCallback(
+    (assistantId: string, updater: (parts: MessagePart[]) => MessagePart[]) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId ? { ...m, parts: updater(m.parts) } : m
+        )
+      )
+    },
+    []
+  )
+
+  /** Send a message programmatically. `handleSubmit` is a thin wrapper for
+   * the form; an idea-page redirect or landing CTA calls this directly so
+   * the prompt becomes a real chat message without a manual click. */
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim()
+      if (!trimmed || isStreamingRef.current) return
+
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        parts: [{ type: "text", content: trimmed }],
+      }
+
+      const updatedMessages = [...messagesRef.current, userMessage]
+      setMessages(updatedMessages)
+      setInput("")
+      setIsStreaming(true)
+
+      let convId = convIdRef.current
+      if (!convId) {
+        convId = await createConversation()
+        convIdRef.current = convId
+        window.history.replaceState(null, "", `/chat/${convId}`)
+      }
+
+      const assistantId = crypto.randomUUID()
+      setMessages((prev) => [
+        ...prev,
+        { id: assistantId, role: "assistant", parts: [] },
+      ])
+
+      try {
+        const apiMessages = updatedMessages.map((m) => ({
+          role: m.role,
+          content: m.parts
+            .filter((p) => p.type === "text")
+            .map((p) => (p as { type: "text"; content: string }).content)
+            .join("\n"),
+        }))
+
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: apiMessages,
+            model: selectedModelRef.current.id,
+          }),
+        })
+
+        if (!res.ok) throw new Error("Failed to send message")
+
+        const reader = res.body?.getReader()
+        const decoder = new TextDecoder()
+        if (!reader) throw new Error("No response stream")
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const text = decoder.decode(value, { stream: true })
+          const lines = text.split("\n").filter((l) => l.startsWith("data: "))
+
+          for (const line of lines) {
+            const data = line.slice(6)
+            if (data === "[DONE]") break
+
+            try {
+              const parsed = JSON.parse(data) as SSEEvent
+
+              if (parsed.type === "error") throw new Error(parsed.message)
+
+              if (parsed.type === "text_delta") {
+                updateAssistantParts(assistantId, (parts) => {
+                  const last = parts[parts.length - 1]
+                  if (last?.type === "text") {
+                    return [
+                      ...parts.slice(0, -1),
+                      { ...last, content: last.content + parsed.content },
+                    ]
+                  }
+                  return [...parts, { type: "text" as const, content: parsed.content }]
+                })
+              }
+
+              if (parsed.type === "widget") {
+                updateAssistantParts(assistantId, (parts) => [
+                  ...parts,
+                  {
+                    type: "widget" as const,
+                    widgetType: parsed.widgetType,
+                    data: parsed.data,
+                    toolCallId: parsed.toolCallId,
+                  },
+                ])
+              }
+            } catch (err) {
+              if (err instanceof Error && err.message !== "Failed to send message") {
+                if (data.startsWith("{")) continue
+                throw err
+              }
+              throw err
+            }
+          }
+        }
+      } catch (error) {
+        updateAssistantParts(assistantId, (parts) => {
+          const errorText =
+            error instanceof Error
+              ? `Error: ${error.message}`
+              : "Something went wrong. Please try again."
+          if (parts.length > 0) {
+            return [...parts, { type: "text" as const, content: `\n\n${errorText}` }]
+          }
+          return [{ type: "text" as const, content: errorText }]
+        })
+      } finally {
+        setIsStreaming(false)
+        const currentId = convIdRef.current
+        if (currentId) {
+          await updateConversation(currentId, messagesRef.current)
+        }
+      }
+    },
+    [createConversation, updateConversation, updateAssistantParts]
+  )
+
+  // Auto-send a prompt passed via ?q=... (Ideas page, landing CTAs). The
+  // prompt arrives as a real user message so the assistant starts streaming
+  // immediately — user doesn't have to click Send.
   useEffect(() => {
     if (initialPrompt && !initialPromptUsed.current) {
       initialPromptUsed.current = true
-      setInput(initialPrompt)
+      sendMessage(initialPrompt)
     }
-  }, [initialPrompt])
+  }, [initialPrompt, sendMessage])
   useEffect(() => {
     setMessages(initialMessages)
     setInput("")
@@ -102,133 +246,9 @@ export function ChatView({
     }
   }, [input])
 
-  const updateAssistantParts = useCallback(
-    (assistantId: string, updater: (parts: MessagePart[]) => MessagePart[]) => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId ? { ...m, parts: updater(m.parts) } : m
-        )
-      )
-    },
-    []
-  )
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!input.trim() || isStreaming) return
-
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: "user",
-      parts: [{ type: "text", content: input.trim() }],
-    }
-
-    const updatedMessages = [...messages, userMessage]
-    setMessages(updatedMessages)
-    setInput("")
-    setIsStreaming(true)
-
-    let convId = convIdRef.current
-    if (!convId) {
-      convId = await createConversation()
-      convIdRef.current = convId
-      window.history.replaceState(null, "", `/chat/${convId}`)
-    }
-
-    const assistantId = crypto.randomUUID()
-    setMessages((prev) => [
-      ...prev,
-      { id: assistantId, role: "assistant", parts: [] },
-    ])
-
-    try {
-      const apiMessages = updatedMessages.map((m) => ({
-        role: m.role,
-        content: m.parts
-          .filter((p) => p.type === "text")
-          .map((p) => (p as { type: "text"; content: string }).content)
-          .join("\n"),
-      }))
-
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages, model: selectedModel.id }),
-      })
-
-      if (!res.ok) throw new Error("Failed to send message")
-
-      const reader = res.body?.getReader()
-      const decoder = new TextDecoder()
-      if (!reader) throw new Error("No response stream")
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        const text = decoder.decode(value, { stream: true })
-        const lines = text.split("\n").filter((l) => l.startsWith("data: "))
-
-        for (const line of lines) {
-          const data = line.slice(6)
-          if (data === "[DONE]") break
-
-          try {
-            const parsed = JSON.parse(data) as SSEEvent
-
-            if (parsed.type === "error") throw new Error(parsed.message)
-
-            if (parsed.type === "text_delta") {
-              updateAssistantParts(assistantId, (parts) => {
-                const last = parts[parts.length - 1]
-                if (last?.type === "text") {
-                  return [
-                    ...parts.slice(0, -1),
-                    { ...last, content: last.content + parsed.content },
-                  ]
-                }
-                return [...parts, { type: "text" as const, content: parsed.content }]
-              })
-            }
-
-            if (parsed.type === "widget") {
-              updateAssistantParts(assistantId, (parts) => [
-                ...parts,
-                {
-                  type: "widget" as const,
-                  widgetType: parsed.widgetType,
-                  data: parsed.data,
-                  toolCallId: parsed.toolCallId,
-                },
-              ])
-            }
-          } catch (err) {
-            if (err instanceof Error && err.message !== "Failed to send message") {
-              if (data.startsWith("{")) continue
-              throw err
-            }
-            throw err
-          }
-        }
-      }
-    } catch (error) {
-      updateAssistantParts(assistantId, (parts) => {
-        const errorText =
-          error instanceof Error
-            ? `Error: ${error.message}`
-            : "Something went wrong. Please try again."
-        if (parts.length > 0) {
-          return [...parts, { type: "text" as const, content: `\n\n${errorText}` }]
-        }
-        return [{ type: "text" as const, content: errorText }]
-      })
-    } finally {
-      setIsStreaming(false)
-      const currentId = convIdRef.current
-      if (currentId) {
-        await updateConversation(currentId, messagesRef.current)
-      }
-    }
+    await sendMessage(input)
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
