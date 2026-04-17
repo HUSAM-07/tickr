@@ -16,7 +16,13 @@ export default function LandingPage() {
         <Link href="/" className="font-heading text-lg font-medium tracking-tight">
           tickr
         </Link>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/game"
+            className="rounded-xl border border-border px-5 py-2.5 font-heading text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          >
+            Play GridRush
+          </Link>
           <Link
             href="/chat"
             className="rounded-xl bg-accent px-5 py-2.5 font-heading text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
@@ -115,6 +121,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl">
           <h2 className="font-display text-2xl mb-8 md:text-3xl">Try it now</h2>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <GameCard />
             <UseCaseCard
               title="Scan Volatility 75 for a signal"
               description="The AI analyzes RSI, MACD, Bollinger Bands, and SMA crossovers on V75 — then presents a visual signal dashboard with a confidence rating and reasoning you can act on."
@@ -157,6 +164,47 @@ export default function LandingPage() {
         </div>
       </footer>
     </main>
+  )
+}
+
+function GameCard() {
+  return (
+    <div className="flex flex-col rounded-2xl bg-primary p-6 text-primary-foreground md:p-8">
+      <div className="flex-1">
+        <span className="inline-block rounded-full bg-accent/90 px-2.5 py-1 font-heading text-[10px] font-medium uppercase tracking-wide text-accent-foreground">
+          New · Game
+        </span>
+        <h3 className="mt-3 font-display text-xl leading-tight md:text-[1.4rem]">
+          GridRush: tap where price goes next
+        </h3>
+        <p className="mt-3 font-body text-sm leading-[1.60] text-primary-foreground/70">
+          A live-market grid over Deriv&apos;s synthetic indices. Tap cells to
+          predict price bands in the next few seconds — each cell shows a
+          dynamic payout multiplier. Consecutive wins compound a streak bonus.
+        </p>
+      </div>
+      <div className="mt-8 space-y-0 border-t border-primary-foreground/15">
+        <div className="flex items-center justify-between border-b border-primary-foreground/15 py-3">
+          <span className="font-heading text-[11px] font-medium uppercase tracking-wide text-primary-foreground/60">
+            Category
+          </span>
+          <span className="font-heading text-sm">Prediction game</span>
+        </div>
+        <div className="flex items-center justify-between py-3">
+          <span className="font-heading text-[11px] font-medium uppercase tracking-wide text-primary-foreground/60">
+            Type
+          </span>
+          <span className="font-heading text-sm">Demo only</span>
+        </div>
+      </div>
+      <Link
+        href="/game"
+        className="mt-5 inline-flex w-fit items-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-heading text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+      >
+        Play now
+        <span>&rarr;</span>
+      </Link>
+    </div>
   )
 }
 
