@@ -1,12 +1,5 @@
+import Image from "next/image"
 import Link from "next/link"
-
-const connectionLines: [number, number, number, number][] = [
-  [120, 80, 400, 300], [250, 50, 480, 250], [80, 200, 350, 420],
-  [300, 100, 520, 380], [150, 350, 450, 150], [50, 400, 280, 60],
-  [380, 40, 550, 350], [200, 280, 500, 100], [100, 120, 460, 400],
-  [350, 200, 180, 450], [420, 300, 90, 100], [500, 150, 200, 380],
-  [70, 300, 530, 200], [300, 400, 150, 50], [450, 250, 100, 350],
-]
 
 export default function LandingPage() {
   return (
@@ -66,57 +59,62 @@ export default function LandingPage() {
       {/* Feature Card Section */}
       <section className="px-6 pb-20 md:px-12 lg:px-20">
         <div className="mx-auto max-w-7xl">
-          <div className="overflow-hidden rounded-3xl bg-primary text-primary-foreground">
-            <div className="grid md:grid-cols-2">
-              <div className="flex flex-col justify-end p-10 md:p-14 lg:p-20">
-                <h2 className="font-display text-4xl leading-[1.10] md:text-5xl lg:text-6xl">
+          <div className="relative overflow-hidden rounded-3xl">
+            {/* Hero background image — centered, cover-cropped */}
+            <Image
+              src="/hero-banner.jpg"
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1280px) 1216px, 100vw"
+              className="object-cover"
+            />
+
+            {/* Legibility overlays — mobile darkens bottom (where text sits
+                when the layout stacks); desktop darkens the left half so
+                the right side of the image still reads clearly. */}
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent md:hidden"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 hidden bg-gradient-to-r from-black/75 via-black/45 to-transparent md:block"
+            />
+
+            {/* Content */}
+            <div className="relative grid md:grid-cols-2">
+              <div className="flex min-h-[360px] flex-col justify-end p-10 md:min-h-[440px] md:p-14 lg:min-h-[480px] lg:p-20">
+                <h2 className="font-display text-4xl leading-[1.10] text-white md:text-5xl lg:text-6xl">
                   Chat.
                   <br />
                   Trade.
                 </h2>
-                <p className="mt-6 max-w-md font-body text-base leading-[1.60] text-primary-foreground/70">
+                <p className="mt-6 max-w-md font-body text-base leading-[1.60] text-white/80">
                   Live candlestick charts, technical analysis, and binary
                   options trading — all happening inside the conversation.
                   The AI is your analyst. The chat is your terminal.
                 </p>
-              </div>
-
-              <div className="relative min-h-[300px] md:min-h-[400px]">
-                <div className="absolute inset-0 overflow-hidden">
-                  <svg
-                    className="h-full w-full opacity-30"
-                    viewBox="0 0 600 500"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/chat"
+                    className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 font-heading text-sm font-medium text-black transition-opacity hover:opacity-90"
                   >
-                    {Array.from({ length: 8 }).map((_, row) =>
-                      Array.from({ length: 6 }).map((_, col) => {
-                        const x = col * 90 + (row % 2 === 0 ? 0 : 45) + 30
-                        const y = row * 65 + 30
-                        return (
-                          <polygon
-                            key={`${row}-${col}`}
-                            points={hexPoints(x, y, 32)}
-                            stroke="currentColor"
-                            strokeWidth="1"
-                            fill="none"
-                            opacity={0.4 + ((row * 6 + col) % 5) * 0.12}
-                          />
-                        )
-                      })
-                    )}
-                    {connectionLines.map(([x1, y1, x2, y2], i) => (
-                      <line
-                        key={`line-${i}`}
-                        x1={x1} y1={y1} x2={x2} y2={y2}
-                        stroke="currentColor"
-                        strokeWidth="0.5"
-                        opacity={0.3}
-                      />
-                    ))}
-                  </svg>
+                    Start trading
+                    <span>&rarr;</span>
+                  </Link>
+                  <Link
+                    href="/chat/ideas"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-2.5 font-heading text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                  >
+                    Browse ideas
+                  </Link>
                 </div>
               </div>
+
+              {/* Right column is intentionally empty — the image shows
+                  through on desktop. Reserves layout space only. */}
+              <div className="hidden md:block" />
             </div>
           </div>
         </div>
@@ -255,15 +253,6 @@ function SpikeCard() {
       </Link>
     </div>
   )
-}
-
-function hexPoints(cx: number, cy: number, r: number): string {
-  return Array.from({ length: 6 })
-    .map((_, i) => {
-      const angle = (Math.PI / 3) * i - Math.PI / 6
-      return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`
-    })
-    .join(" ")
 }
 
 function UseCaseCard({
