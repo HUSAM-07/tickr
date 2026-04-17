@@ -4,7 +4,17 @@ import { useMemo } from "react"
 import type { EngineState } from "@/lib/game/engine"
 import type { Position } from "@/lib/game/types"
 import { STAKE_TIERS } from "@/lib/game/constants"
-import { Flame, Wifi, WifiOff, TrendingUp, TrendingDown } from "lucide-react"
+import { SYMBOL_DISPLAY } from "@/lib/deriv/constants"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ChevronsUpDown, Flame, Wifi, WifiOff, TrendingUp, TrendingDown } from "lucide-react"
 
 type Props = {
   state: EngineState
@@ -125,17 +135,11 @@ export function GameSidebar({
         <label className="mb-1.5 block font-heading text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           Market
         </label>
-        <select
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value)}
-          className="w-full rounded-lg border border-border bg-card px-3 py-2 font-heading text-sm outline-none focus:border-accent"
-        >
-          {supportedSymbols.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+        <MarketDropdown
+          symbol={symbol}
+          setSymbol={setSymbol}
+          supportedSymbols={supportedSymbols}
+        />
       </div>
 
       {/* Stake */}
@@ -194,6 +198,74 @@ export function GameSidebar({
         Reset demo balance
       </button>
     </aside>
+  )
+}
+
+function MarketDropdown({
+  symbol,
+  setSymbol,
+  supportedSymbols,
+}: {
+  symbol: string
+  setSymbol: (s: string) => void
+  supportedSymbols: string[]
+}) {
+  const info = SYMBOL_DISPLAY[symbol]
+  const name = info?.name ?? symbol
+  const market = info?.market ?? "Synthetic"
+
+  // Group symbols by market category for a nicer menu
+  const grouped = useMemo(() => {
+    const byMarket = new Map<string, string[]>()
+    for (const s of supportedSymbols) {
+      const m = SYMBOL_DISPLAY[s]?.market ?? "Other"
+      const list = byMarket.get(m) ?? []
+      list.push(s)
+      byMarket.set(m, list)
+    }
+    return Array.from(byMarket.entries())
+  }, [supportedSymbols])
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className="group flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-left outline-none transition-colors hover:border-muted-foreground focus-visible:border-accent"
+      >
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate font-heading text-sm text-foreground">
+            {symbol}
+          </span>
+          <span className="truncate font-heading text-[11px] text-muted-foreground">
+            {name} · {market}
+          </span>
+        </span>
+        <ChevronsUpDown size={14} className="shrink-0 text-muted-foreground" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        sideOffset={6}
+        className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[60vh]"
+      >
+        <DropdownMenuRadioGroup value={symbol} onValueChange={setSymbol}>
+          {grouped.map(([marketName, syms], idx) => (
+            <div key={marketName}>
+              {idx > 0 && <DropdownMenuSeparator />}
+              <DropdownMenuLabel>{marketName}</DropdownMenuLabel>
+              {syms.map((s) => (
+                <DropdownMenuRadioItem key={s} value={s} className="pr-2">
+                  <span className="flex flex-col">
+                    <span className="font-heading text-sm">{s}</span>
+                    <span className="font-heading text-[11px] text-muted-foreground">
+                      {SYMBOL_DISPLAY[s]?.name ?? s}
+                    </span>
+                  </span>
+                </DropdownMenuRadioItem>
+              ))}
+            </div>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

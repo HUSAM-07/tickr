@@ -696,23 +696,40 @@ function drawAssetBadge(ctx: CanvasRenderingContext2D, s: EngineState): void {
   const pad = 12
   const x = pad
   const y = pad
-  const w = 130
   const h = 32
-  ctx.fillStyle = "rgba(26, 26, 24, 0.75)"
+  const paddingX = 12
+  const gap = 10
+
+  // Measure both labels so the pill width fits the content exactly
+  ctx.font = "700 13px Styrene A, system-ui, sans-serif"
+  ctx.textBaseline = "middle"
+  ctx.textAlign = "left"
+  const symbolLabel = s.symbol
+  const symbolW = ctx.measureText(symbolLabel).width
+
+  ctx.font = "600 9px Styrene A, system-ui, sans-serif"
+  const tagLabel = "SYNTHETIC"
+  const tagW = ctx.measureText(tagLabel).width
+
+  const w = paddingX + symbolW + gap + tagW + paddingX
+
+  // Pill background
+  ctx.fillStyle = "rgba(26, 26, 24, 0.8)"
   ctx.strokeStyle = "rgba(250, 249, 245, 0.15)"
   ctx.lineWidth = 1
   roundRect(ctx, x, y, w, h, 8)
   ctx.fill()
   ctx.stroke()
 
+  // Symbol
   ctx.fillStyle = "#faf9f5"
   ctx.font = "700 13px Styrene A, system-ui, sans-serif"
-  ctx.textAlign = "left"
-  ctx.textBaseline = "middle"
-  ctx.fillText(s.symbol, x + 10, y + h / 2 - 1)
+  ctx.fillText(symbolLabel, x + paddingX, y + h / 2 + 0.5)
+
+  // "SYNTHETIC" tag
   ctx.fillStyle = "rgba(217, 119, 87, 0.9)"
-  ctx.font = "500 9px Styrene A, system-ui, sans-serif"
-  ctx.fillText("SYNTHETIC", x + 70, y + h / 2 - 1)
+  ctx.font = "600 9px Styrene A, system-ui, sans-serif"
+  ctx.fillText(tagLabel, x + paddingX + symbolW + gap, y + h / 2 + 0.5)
 }
 
 function drawNowLine(
