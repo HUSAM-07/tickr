@@ -18,10 +18,16 @@ export default function LandingPage() {
         </Link>
         <div className="flex items-center gap-3">
           <Link
+            href="/spike"
+            className="rounded-xl border border-border px-5 py-2.5 font-heading text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+          >
+            Spike Hunter
+          </Link>
+          <Link
             href="/game"
             className="rounded-xl border border-border px-5 py-2.5 font-heading text-sm font-medium text-foreground transition-colors hover:bg-secondary"
           >
-            Play GridRush
+            GridRush
           </Link>
           <Link
             href="/chat"
@@ -122,6 +128,7 @@ export default function LandingPage() {
           <h2 className="font-display text-2xl mb-8 md:text-3xl">Try it now</h2>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             <GameCard />
+            <SpikeCard />
             <UseCaseCard
               title="Scan Volatility 75 for a signal"
               description="The AI analyzes RSI, MACD, Bollinger Bands, and SMA crossovers on V75 — then presents a visual signal dashboard with a confidence rating and reasoning you can act on."
@@ -202,6 +209,48 @@ function GameCard() {
         className="mt-5 inline-flex w-fit items-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-heading text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
       >
         Play now
+        <span>&rarr;</span>
+      </Link>
+    </div>
+  )
+}
+
+function SpikeCard() {
+  return (
+    <div className="flex flex-col rounded-2xl border border-border bg-card p-6 md:p-8">
+      <div className="flex-1">
+        <span className="inline-block rounded-full bg-accent/15 px-2.5 py-1 font-heading text-[10px] font-medium uppercase tracking-wide text-accent">
+          New · Game
+        </span>
+        <h3 className="mt-3 font-display text-xl leading-tight md:text-[1.4rem]">
+          Spike Hunter: time the next Boom or Crash
+        </h3>
+        <p className="mt-3 font-body text-sm leading-[1.60] text-muted-foreground">
+          Deriv&apos;s Boom &amp; Crash indices spike at a known average
+          interval. Pick a window for when the next one will hit — tight
+          windows pay big, wide windows pay safe. Each round is seconds of
+          pure anticipation.
+        </p>
+      </div>
+      <div className="mt-8 space-y-0 border-t border-border">
+        <div className="flex items-center justify-between border-b border-border py-3">
+          <span className="font-heading text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            Category
+          </span>
+          <span className="font-heading text-sm">Timing game</span>
+        </div>
+        <div className="flex items-center justify-between py-3">
+          <span className="font-heading text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            Type
+          </span>
+          <span className="font-heading text-sm">Demo only</span>
+        </div>
+      </div>
+      <Link
+        href="/spike"
+        className="mt-5 inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-heading text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+      >
+        Hunt a spike
         <span>&rarr;</span>
       </Link>
     </div>
