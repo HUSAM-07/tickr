@@ -28,6 +28,7 @@ export function GridRush() {
   const { client, connectionState } = useTradingContext()
   const [symbol, setSymbolState] = useState("R_100")
   const [stake, setStake] = useState<number>(DEFAULT_STAKE)
+  const [parlayMode, setParlayMode] = useState(false)
   const [engine, setEngine] = useState(() => new GameEngine("R_100"))
   const [state, setState] = useState<EngineState>(() => engine.getState())
   const unsubTicksRef = useRef<(() => void) | null>(null)
@@ -38,6 +39,7 @@ export function GridRush() {
     setSymbolState(next)
     setEngine(e)
     setState(e.getState())
+    setParlayMode(false)
   }
 
   // Subscribe to engine state changes for sidebar rerender
@@ -84,6 +86,7 @@ export function GridRush() {
     const e = new GameEngine(symbol)
     setEngine(e)
     setState(e.getState())
+    setParlayMode(false)
   }
 
   const symbolName = useMemo(
@@ -116,17 +119,25 @@ export function GridRush() {
 
       <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
         <div className="flex-1 p-4 md:p-5">
-          <GameCanvas engine={engine} stake={stake} className="h-full w-full" />
+          <GameCanvas
+            engine={engine}
+            stake={stake}
+            parlayMode={parlayMode}
+            className="h-full w-full"
+          />
         </div>
         <div className="w-full border-t border-border md:w-[340px] md:border-l md:border-t-0">
           <GameSidebar
             state={state}
+            engine={engine}
             stake={stake}
             setStake={setStake}
             symbol={symbol}
             setSymbol={setSymbol}
             supportedSymbols={SUPPORTED_SYMBOLS}
             connectionState={connectionState}
+            parlayMode={parlayMode}
+            setParlayMode={setParlayMode}
             onResetBalance={onResetBalance}
           />
         </div>

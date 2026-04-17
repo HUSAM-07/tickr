@@ -3,12 +3,14 @@
 import { useEffect, useRef } from "react"
 import type { GameEngine, FxEvent } from "@/lib/game/engine"
 import type { EngineState } from "@/lib/game/engine"
-import type { Position } from "@/lib/game/types"
+import type { ParlayLeg, ParlayPosition, Position } from "@/lib/game/types"
 import { heatColorFor } from "@/lib/game/constants"
 
 type Props = {
   engine: GameEngine
   stake: number
+  /** When true, cell taps add to the parlay builder instead of placing a single bet. */
+  parlayMode: boolean
   className?: string
 }
 
@@ -26,11 +28,12 @@ const BURST_MS = 900
 const FLASH_MS = 500
 const BANNER_MS = 2400
 
-export function GameCanvas({ engine, stake, className }: Props) {
+export function GameCanvas({ engine, stake, parlayMode, className }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const stateRef = useRef<EngineState>(engine.getState())
   const stakeRef = useRef<number>(stake)
+  const parlayModeRef = useRef<boolean>(parlayMode)
   const hoverRef = useRef<HoverCell>(null)
   const burstsRef = useRef<ActiveBurst[]>([])
   const flashesRef = useRef<ActiveFlash[]>([])
@@ -40,6 +43,11 @@ export function GameCanvas({ engine, stake, className }: Props) {
   useEffect(() => {
     stakeRef.current = stake
   }, [stake])
+
+  // Keep parlay-mode ref up to date
+  useEffect(() => {
+    parlayModeRef.current = parlayMode
+  }, [parlayMode])
 
   // Subscribe to engine updates (state + FX)
   useEffect(() => {
@@ -153,13 +161,20 @@ export function GameCanvas({ engine, stake, className }: Props) {
     const onClick = (e: MouseEvent) => {
       const cell = toCell(e.clientX, e.clientY)
       if (!cell) return
-      engine.placeBet(cell.col, cell.row, stakeRef.current)
+      if (parlayModeRef.current) {
+        engine.toggleDraftLeg(cell.col, cell.row)
+      } else {
+        engine.placeBet(cell.col, cell.row, stakeRef.current)
+      }
     }
     const onTouch = (e: TouchEvent) => {
       if (e.changedTouches.length === 0) return
       const t = e.changedTouches[0]
       const cell = toCell(t.clientX, t.clientY)
-      if (cell) {
+      if (!cell) return
+      if (parlayModeRef.current) {
+        engine.toggleDraftLeg(cell.col, cell.row)
+      } else {
         engine.placeBet(cell.col, cell.row, stakeRef.current)
       }
     }
@@ -402,6 +417,29 @@ function drawGridCells(
     posByCell.set(k, arr)
   }
 
+  // Lookup of parlay legs → a cell may belong to 0-N parlays; we only need
+  // the "best" visual state. Priority: OPEN leg of an OPEN parlay > WON leg
+  // of a settled parlay > LOST leg.
+  const legByCell = new Map<string, { parlay: ParlayPosition; leg: ParlayLeg }>()
+  for (const parlay of s.parlays) {
+    for (const leg of parlay.legs) {
+      const k = `${leg.columnIndex}:${leg.rowIndex}`
+      const existing = legByCell.get(k)
+      if (
+        !existing ||
+        (parlay.status === "OPEN" && existing.parlay.status !== "OPEN")
+      ) {
+        legByCell.set(k, { parlay, leg })
+      }
+    }
+  }
+
+  // Draft legs currently being built (parlay builder) — a Set of cell keys.
+  const draftKeySet = new Set<string>()
+  for (const d of s.draftLegs) {
+    draftKeySet.add(`${d.columnIndex}:${d.rowIndex}`)
+  }
+
   // Find "hot row" — row index with greatest recent drift direction
   const hotRow = computeHotRow(s)
 
@@ -427,9 +465,14 @@ function drawGridCells(
       const key = `${col}:${row}`
       const pricing = s.cells.get(key)
       const posList = posByCell.get(key) ?? []
+      const parlayLegHere = legByCell.get(key)
       const hasOpenPos = posList.some((p) => p.status === "OPEN")
-      const hasWon = posList.some((p) => p.status === "WON")
-      const hasLost = posList.some((p) => p.status === "LOST")
+      const hasWon =
+        posList.some((p) => p.status === "WON") ||
+        parlayLegHere?.leg.status === "WON"
+      const hasLost =
+        posList.some((p) => p.status === "LOST") ||
+        parlayLegHere?.leg.status === "LOST"
 
       // Background
       let bg = "#26241f"
@@ -488,6 +531,61 @@ function drawGridCells(
         ctx.strokeStyle = "#e5c04a"
         ctx.lineWidth = 2
         ctx.strokeRect(x + 2, cy + 2, L.cellW - 4, L.cellH - 4)
+      }
+
+      // Parlay leg visuals — terracotta border + small "link" mark so the
+      // user can see at a glance which cells are chained together.
+      if (parlayLegHere) {
+        const { parlay, leg } = parlayLegHere
+        if (parlay.status === "OPEN" && leg.status === "OPEN") {
+          ctx.globalAlpha = fade
+          ctx.strokeStyle = "#d97757"
+          ctx.lineWidth = 2
+          ctx.strokeRect(x + 2, cy + 2, L.cellW - 4, L.cellH - 4)
+          // Link mark: filled diamond in top-right
+          ctx.fillStyle = "#d97757"
+          const mx = x + L.cellW - 10
+          const my = cy + 10
+          ctx.beginPath()
+          ctx.moveTo(mx, my - 4)
+          ctx.lineTo(mx + 4, my)
+          ctx.lineTo(mx, my + 4)
+          ctx.lineTo(mx - 4, my)
+          ctx.closePath()
+          ctx.fill()
+        } else if (leg.status === "WON") {
+          // Keep rendering a subtle accent edge on settled WON parlay legs
+          ctx.globalAlpha = fade * 0.7
+          ctx.strokeStyle = "rgba(217, 119, 87, 0.6)"
+          ctx.lineWidth = 1
+          ctx.strokeRect(x + 3, cy + 3, L.cellW - 6, L.cellH - 6)
+        }
+      }
+
+      // Draft leg visuals — cyan dashed border, only shown while the user
+      // is actively assembling a parlay (cell is a member of draftLegs).
+      if (draftKeySet.has(key)) {
+        ctx.globalAlpha = 1
+        ctx.strokeStyle = "#6a9bcc"
+        ctx.lineWidth = 2
+        ctx.setLineDash([4, 3])
+        ctx.strokeRect(x + 2, cy + 2, L.cellW - 4, L.cellH - 4)
+        ctx.setLineDash([])
+        // Small ordinal indicator for draft legs so users can see build order
+        const order = s.draftLegs.findIndex(
+          (l) => l.columnIndex === col && l.rowIndex === row
+        )
+        if (order >= 0) {
+          ctx.fillStyle = "#6a9bcc"
+          ctx.beginPath()
+          ctx.arc(x + 12, cy + 12, 8, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.fillStyle = "#1a1a18"
+          ctx.font = "700 10px Styrene A, system-ui, sans-serif"
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText(`${order + 1}`, x + 12, cy + 12 + 0.5)
+        }
       }
 
       // Settled result overlays (historical zone)

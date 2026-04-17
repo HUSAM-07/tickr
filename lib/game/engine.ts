@@ -16,6 +16,8 @@
 import type {
   CellPricing,
   GameConfig,
+  ParlayLeg,
+  ParlayPosition,
   Position,
   Settlement,
   Tick,
@@ -26,8 +28,31 @@ import {
   STREAK_BONUS_CAP,
   STREAK_BONUS_STEP,
   SYMBOL_CONFIG,
+  multiplierCapFor,
   priceBandFraction,
 } from "./constants"
+
+/** Minimum / maximum legs in a parlay. */
+export const MIN_PARLAY_LEGS = 2
+export const MAX_PARLAY_LEGS = 6
+
+/** A draft leg is a cell the user has *staged* into the parlay builder
+ * but not yet committed. It holds only coordinates — we re-quote it from
+ * the live cell map on every emit so the builder shows fresh odds. */
+export type DraftLeg = {
+  columnIndex: number
+  rowIndex: number
+}
+
+/** Snapshot of a draft leg's current odds — computed on read, not stored. */
+export type DraftLegQuote = {
+  columnIndex: number
+  rowIndex: number
+  priceLow: number
+  priceHigh: number
+  fairMultiplier: number
+  offeredMultiplier: number
+}
 
 /** Transient visual event for Canvas FX layer. Engine emits, Canvas drains. */
 export type FxEvent =
@@ -43,6 +68,13 @@ export type FxEvent =
       columnIndex: number
       rowIndex: number
       stake: number
+      atMs: number
+    }
+  | {
+      kind: "LEG_HIT"
+      columnIndex: number
+      rowIndex: number
+      parlayId: string
       atMs: number
     }
   | {
@@ -74,6 +106,13 @@ export type EngineState = {
 
   /** All positions (open + settled). Settled ones retained for 1h. */
   positions: Position[]
+
+  /** Parlay positions (open + settled). Settled ones retained for 1h. */
+  parlays: ParlayPosition[]
+
+  /** Draft legs the user is currently assembling in the parlay builder.
+   * Not yet placed — no stake deducted. */
+  draftLegs: DraftLeg[]
 
   /** Demo balance */
   balance: number
@@ -123,6 +162,8 @@ export class GameEngine {
       ticks: [],
       cells: new Map(),
       positions: [],
+      parlays: [],
+      draftLegs: [],
       balance: cfg.startingBalanceUsdt,
       sessionPnl: 0,
       winStreak: 0,
@@ -239,6 +280,133 @@ export class GameEngine {
     return pos
   }
 
+  // ── Parlay builder ──
+
+  /** Toggle a cell in/out of the draft parlay. Returns the new draft length. */
+  toggleDraftLeg(columnIndex: number, rowIndex: number): number {
+    const s = this.state
+    const idx = s.draftLegs.findIndex(
+      (l) => l.columnIndex === columnIndex && l.rowIndex === rowIndex
+    )
+    if (idx >= 0) {
+      s.draftLegs.splice(idx, 1)
+    } else {
+      if (s.draftLegs.length >= MAX_PARLAY_LEGS) {
+        this.emit()
+        return s.draftLegs.length
+      }
+      // Only allow cells that are currently playable
+      if (!s.cells.has(cellKey(columnIndex, rowIndex))) {
+        this.emit()
+        return s.draftLegs.length
+      }
+      s.draftLegs.push({ columnIndex, rowIndex })
+    }
+    this.emit()
+    return s.draftLegs.length
+  }
+
+  clearDraftLegs(): void {
+    this.state.draftLegs = []
+    this.emit()
+  }
+
+  /** Snapshot the current odds for every draft leg. Combined multiplier is
+   * computed from the PRODUCT of fair (pre-margin) leg multipliers, then
+   * a SINGLE margin is applied — this is why parlays pay more than the
+   * equivalent independent singles. */
+  quoteDraftParlay(): {
+    legs: DraftLegQuote[]
+    combinedMultiplier: number
+    combinedPayoutOnStake: (stake: number) => number
+  } {
+    const s = this.state
+    const legs: DraftLegQuote[] = []
+    let fairProduct = 1
+    for (const draft of s.draftLegs) {
+      const pricing = s.cells.get(cellKey(draft.columnIndex, draft.rowIndex))
+      if (!pricing) continue
+      // Re-derive the fair multiplier (pre-margin) from the stored post-margin
+      // offered multiplier. (We store offered but not fair on CellPricing.)
+      const fair = pricing.multiplier / (1 - s.config.platformMargin)
+      legs.push({
+        columnIndex: pricing.columnIndex,
+        rowIndex: pricing.rowIndex,
+        priceLow: pricing.priceLow,
+        priceHigh: pricing.priceHigh,
+        fairMultiplier: fair,
+        offeredMultiplier: pricing.multiplier,
+      })
+      fairProduct *= fair
+    }
+
+    // Apply a single margin to the combined fair product, then clamp using
+    // the weakest leg's probability tier so the combined multiplier can't
+    // abuse the cap structure.
+    let combined = fairProduct * (1 - s.config.platformMargin)
+    // Cap the combined multiplier against the combined implied probability.
+    const combinedProb = 1 / fairProduct
+    const cap = multiplierCapFor(combinedProb)
+    combined = Math.min(combined, cap)
+    combined = Math.max(combined, 1.01)
+
+    return {
+      legs,
+      combinedMultiplier: legs.length >= MIN_PARLAY_LEGS ? combined : 0,
+      combinedPayoutOnStake: (stake: number) =>
+        legs.length >= MIN_PARLAY_LEGS ? stake * combined : 0,
+    }
+  }
+
+  /** Commit the draft legs as a parlay. Returns the new parlay, or null if
+   * rejected. Clears the draft on success. */
+  placeParlay(stake: number): ParlayPosition | null {
+    const s = this.state
+    if (stake <= 0 || stake > s.balance) return null
+    if (s.draftLegs.length < MIN_PARLAY_LEGS) return null
+
+    const quote = this.quoteDraftParlay()
+    if (quote.legs.length !== s.draftLegs.length) {
+      // Some draft legs no longer have live pricing — abort
+      return null
+    }
+
+    const streakBonus = s.nextStreakBonus
+    const intervalMs = s.config.timeIntervalSec * 1000
+
+    const legs: ParlayLeg[] = quote.legs.map((q) => ({
+      columnIndex: q.columnIndex,
+      rowIndex: q.rowIndex,
+      priceLow: q.priceLow,
+      priceHigh: q.priceHigh,
+      fairMultiplier: q.fairMultiplier,
+      offeredMultiplier: q.offeredMultiplier,
+      columnStartMs: s.originMs + q.columnIndex * intervalMs,
+      columnEndMs: s.originMs + (q.columnIndex + 1) * intervalMs,
+      status: "OPEN",
+    }))
+
+    const parlay: ParlayPosition = {
+      id: `P${this.positionSeq++}`,
+      kind: "parlay",
+      legs,
+      stake,
+      combinedMultiplier: quote.combinedMultiplier,
+      streakBonus,
+      potentialPayout: stake * quote.combinedMultiplier * streakBonus,
+      placedAtMs: s.nowMs,
+      status: "OPEN",
+    }
+
+    s.balance -= stake
+    s.parlays.unshift(parlay)
+    s.draftLegs = []
+    s.nextStreakBonus = 1
+
+    this.emit()
+    return parlay
+  }
+
   // ── Internals ──
 
   /** Regenerate pricing for all cells in the playable future range. */
@@ -291,7 +459,8 @@ export class GameEngine {
   }
 
   /** Early-win: if tick price touches an OPEN position's cell whose window
-   * has started, credit immediately (spec §8.1). */
+   * has started, credit immediately (spec §8.1). For parlays, mark the leg
+   * as WON and resolve the whole parlay if this was its last open leg. */
   private checkEarlyWins(price: number, nowMs: number): void {
     const s = this.state
     for (const pos of s.positions) {
@@ -301,6 +470,28 @@ export class GameEngine {
       if (price >= pos.priceLow && price < pos.priceHigh) {
         this.settlePosition(pos, "WON", nowMs, price)
       }
+    }
+
+    for (const parlay of s.parlays) {
+      if (parlay.status !== "OPEN") continue
+      for (const leg of parlay.legs) {
+        if (leg.status !== "OPEN") continue
+        if (nowMs < leg.columnStartMs) continue
+        if (nowMs >= leg.columnEndMs) continue
+        if (price >= leg.priceLow && price < leg.priceHigh) {
+          leg.status = "WON"
+          leg.hitPrice = price
+          leg.hitAtMs = nowMs
+          this.fx({
+            kind: "LEG_HIT",
+            columnIndex: leg.columnIndex,
+            rowIndex: leg.rowIndex,
+            parlayId: parlay.id,
+            atMs: nowMs,
+          })
+        }
+      }
+      this.maybeFinalizeParlay(parlay, nowMs)
     }
   }
 
@@ -321,6 +512,113 @@ export class GameEngine {
       } else {
         this.settlePosition(pos, "LOST", nowMs)
       }
+    }
+
+    for (const parlay of s.parlays) {
+      if (parlay.status !== "OPEN") continue
+      for (const leg of parlay.legs) {
+        if (leg.status !== "OPEN") continue
+        if (nowMs < leg.columnEndMs) continue
+        const received = s.ticks.some(
+          (t) => t.epochMs >= leg.columnStartMs && t.epochMs < leg.columnEndMs
+        )
+        leg.status = received ? "LOST" : "REFUNDED"
+      }
+      this.maybeFinalizeParlay(parlay, nowMs)
+    }
+  }
+
+  /** If all legs have settled (or any has lost/refunded) finalize the parlay's
+   * outcome and credit/settle accordingly. */
+  private maybeFinalizeParlay(parlay: ParlayPosition, nowMs: number): void {
+    if (parlay.status !== "OPEN") return
+
+    // Any leg refunded → whole parlay refunds (stake returned)
+    if (parlay.legs.some((l) => l.status === "REFUNDED")) {
+      this.finalizeParlay(parlay, "REFUNDED", nowMs)
+      return
+    }
+    // Any leg lost → parlay lost immediately (no reason to wait)
+    if (parlay.legs.some((l) => l.status === "LOST")) {
+      this.finalizeParlay(parlay, "LOST", nowMs)
+      return
+    }
+    // All legs won → parlay won
+    if (parlay.legs.every((l) => l.status === "WON")) {
+      this.finalizeParlay(parlay, "WON", nowMs)
+      return
+    }
+    // Otherwise still open — waiting on the remaining legs to resolve.
+  }
+
+  private finalizeParlay(
+    parlay: ParlayPosition,
+    status: "WON" | "LOST" | "REFUNDED",
+    atMs: number
+  ): void {
+    const s = this.state
+    parlay.status = status
+    parlay.settledAtMs = atMs
+
+    let payout = 0
+    let pnlDelta = -parlay.stake
+    if (status === "WON") {
+      payout = parlay.stake * parlay.combinedMultiplier * parlay.streakBonus
+      pnlDelta = payout - parlay.stake
+      s.balance += payout
+      s.winStreak += 1
+      s.nextStreakBonus = Math.min(
+        STREAK_BONUS_CAP,
+        1 + s.winStreak * STREAK_BONUS_STEP
+      )
+    } else if (status === "REFUNDED") {
+      payout = parlay.stake
+      pnlDelta = 0
+      s.balance += parlay.stake
+    } else {
+      s.winStreak = 0
+      s.nextStreakBonus = 1
+    }
+    parlay.actualPayout = payout
+    s.sessionPnl += pnlDelta
+
+    // Emit FX based on the final outcome
+    if (status === "WON") {
+      // Burst on the last-settled leg (the one that "closed" the parlay)
+      const lastLeg = parlay.legs.reduce<ParlayLeg>(
+        (a, b) => ((b.hitAtMs ?? 0) > (a.hitAtMs ?? 0) ? b : a),
+        parlay.legs[0]
+      )
+      this.fx({
+        kind: "WIN_BURST",
+        columnIndex: lastLeg.columnIndex,
+        rowIndex: lastLeg.rowIndex,
+        payout,
+        atMs,
+      })
+      this.fx({
+        kind: "BANNER",
+        tone: "win",
+        text: `Parlay hit! ${parlay.combinedMultiplier.toFixed(2)}x × ${parlay.legs.length} legs → ${payout.toFixed(2)} USDT`,
+        atMs,
+      })
+    } else if (status === "LOST") {
+      // Flash the leg that broke the parlay
+      const brokenLeg =
+        parlay.legs.find((l) => l.status === "LOST") ?? parlay.legs[0]
+      this.fx({
+        kind: "LOSS_FLASH",
+        columnIndex: brokenLeg.columnIndex,
+        rowIndex: brokenLeg.rowIndex,
+        stake: parlay.stake,
+        atMs,
+      })
+      this.fx({
+        kind: "BANNER",
+        tone: "loss",
+        text: `Parlay broken — lost ${parlay.stake.toFixed(2)} USDT`,
+        atMs,
+      })
     }
   }
 
@@ -403,6 +701,13 @@ export class GameEngine {
     const keepAfterMs = nowMs - 60 * 60 * 1000
     s.positions = s.positions.filter(
       (p) => p.status === "OPEN" || (p.settledAtMs ?? 0) >= keepAfterMs
+    )
+    s.parlays = s.parlays.filter(
+      (p) => p.status === "OPEN" || (p.settledAtMs ?? 0) >= keepAfterMs
+    )
+    // Drop draft legs whose cells have rolled past the playable window.
+    s.draftLegs = s.draftLegs.filter((l) =>
+      s.cells.has(cellKey(l.columnIndex, l.rowIndex))
     )
   }
 
