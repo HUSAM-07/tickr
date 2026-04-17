@@ -55,6 +55,46 @@ export type Position = {
   hitAtMs?: number
 }
 
+/** A single leg of a parlay — one (col, row) prediction. Legs settle
+ * independently but the parlay as a whole only WINS if every leg WINS.
+ * If any leg LOSES, the parlay loses immediately. If any leg REFUNDS
+ * (no ticks in its window), the whole parlay refunds. */
+export type ParlayLeg = {
+  columnIndex: number
+  rowIndex: number
+  priceLow: number
+  priceHigh: number
+  /** Per-leg fair multiplier = 1 / P(touch), BEFORE margin. Used to compute
+   * the combined parlay payout. */
+  fairMultiplier: number
+  /** Per-leg offered multiplier (post-margin), for display only. */
+  offeredMultiplier: number
+  columnStartMs: number
+  columnEndMs: number
+  status: "OPEN" | "WON" | "LOST" | "REFUNDED"
+  hitPrice?: number
+  hitAtMs?: number
+}
+
+export type ParlayPosition = {
+  id: string
+  kind: "parlay"
+  legs: ParlayLeg[]
+  stake: number
+  /** Combined offered multiplier — product of leg fair multipliers, then
+   * a SINGLE margin applied. This is why parlays pay more than equivalent
+   * independent singles: margin is charged once, not N times. */
+  combinedMultiplier: number
+  /** Streak bonus applied at placement. */
+  streakBonus: number
+  /** stake × combinedMultiplier × streakBonus */
+  potentialPayout: number
+  placedAtMs: number
+  status: "OPEN" | "WON" | "LOST" | "REFUNDED"
+  settledAtMs?: number
+  actualPayout?: number
+}
+
 export type Tick = {
   price: number
   epochMs: number

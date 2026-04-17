@@ -1,8 +1,13 @@
 "use client"
 
 import { useMemo } from "react"
-import type { EngineState } from "@/lib/game/engine"
-import type { Position } from "@/lib/game/types"
+import {
+  MAX_PARLAY_LEGS,
+  MIN_PARLAY_LEGS,
+  type EngineState,
+  type GameEngine,
+} from "@/lib/game/engine"
+import type { ParlayPosition, Position } from "@/lib/game/types"
 import { STAKE_TIERS } from "@/lib/game/constants"
 import { SYMBOL_DISPLAY } from "@/lib/deriv/constants"
 import {
@@ -14,30 +19,46 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChevronsUpDown, Flame, Wifi, WifiOff, TrendingUp, TrendingDown } from "lucide-react"
+import {
+  ChevronsUpDown,
+  Flame,
+  Link2,
+  Link2Off,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  Wifi,
+  WifiOff,
+} from "lucide-react"
 
 type Props = {
   state: EngineState
+  engine: GameEngine
   stake: number
   setStake: (n: number) => void
   symbol: string
   setSymbol: (s: string) => void
   supportedSymbols: string[]
   connectionState: string
+  parlayMode: boolean
+  setParlayMode: (v: boolean) => void
   onResetBalance: () => void
 }
 
 export function GameSidebar({
   state,
+  engine,
   stake,
   setStake,
   symbol,
   setSymbol,
   supportedSymbols,
   connectionState,
+  parlayMode,
+  setParlayMode,
   onResetBalance,
 }: Props) {
-  const { positions, balance, sessionPnl, winStreak, nextStreakBonus } = state
+  const { positions, parlays, balance, sessionPnl, winStreak, nextStreakBonus } = state
 
   const { openCount, wonCount, lostCount } = useMemo(() => {
     let open = 0,
@@ -48,10 +69,20 @@ export function GameSidebar({
       else if (p.status === "WON") won++
       else if (p.status === "LOST") lost++
     }
+    for (const p of parlays) {
+      if (p.status === "OPEN") open++
+      else if (p.status === "WON") won++
+      else if (p.status === "LOST") lost++
+    }
     return { openCount: open, wonCount: won, lostCount: lost }
-  }, [positions])
+  }, [positions, parlays])
 
-  const recent = positions.slice(0, 14)
+  const recent = positions.slice(0, 12)
+  const recentParlays = parlays.slice(0, 6)
+
+  // Live parlay quote — compute on every render (cheap, O(draftLegs)).
+  // Reads from engine.state internally, so no deps needed.
+  const parlayQuote = engine.quoteDraftParlay()
 
   const pnlPositive = sessionPnl > 0.0001
   const pnlNegative = sessionPnl < -0.0001
@@ -166,6 +197,146 @@ export function GameSidebar({
         </div>
       </div>
 
+      {/* Parlay mode toggle */}
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card p-2 pl-3">
+        <div className="flex min-w-0 flex-col">
+          <span className="flex items-center gap-1.5 font-heading text-xs font-medium">
+            {parlayMode ? <Link2 size={13} className="text-accent" /> : <Link2Off size={13} className="text-muted-foreground" />}
+            Parlay mode
+          </span>
+          <span className="font-heading text-[10px] leading-snug text-muted-foreground">
+            Link {MIN_PARLAY_LEGS}–{MAX_PARLAY_LEGS} cells. All must hit for combined payout.
+          </span>
+        </div>
+        <button
+          onClick={() => {
+            setParlayMode(!parlayMode)
+            if (parlayMode) engine.clearDraftLegs()
+          }}
+          aria-pressed={parlayMode}
+          className={
+            "shrink-0 rounded-md px-2.5 py-1 font-heading text-[11px] transition-colors " +
+            (parlayMode
+              ? "bg-accent text-accent-foreground"
+              : "border border-border bg-background hover:border-accent")
+          }
+        >
+          {parlayMode ? "On" : "Off"}
+        </button>
+      </div>
+
+      {/* Parlay builder — only visible when building */}
+      {parlayMode && (
+        <div className="rounded-xl border border-[color:var(--color-brand-blue)]/40 bg-[color:var(--color-brand-blue)]/5 p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="font-heading text-[11px] font-medium uppercase tracking-wide text-[color:var(--color-brand-blue)]">
+              Parlay Builder
+            </span>
+            <span className="font-heading text-[11px] text-muted-foreground">
+              {state.draftLegs.length}/{MAX_PARLAY_LEGS} legs
+            </span>
+          </div>
+          {state.draftLegs.length === 0 ? (
+            <p className="font-body text-xs leading-snug text-muted-foreground">
+              Tap cells on the grid to add legs. Every leg must win for the
+              parlay to pay out.
+            </p>
+          ) : (
+            <>
+              <div className="mb-2 flex flex-col gap-1">
+                {parlayQuote.legs.map((leg, i) => (
+                  <div
+                    key={`${leg.columnIndex}:${leg.rowIndex}`}
+                    className="flex items-center justify-between rounded-md border border-[color:var(--color-brand-blue)]/30 bg-card px-2 py-1"
+                  >
+                    <span className="font-heading text-[11px]">
+                      <span className="inline-flex size-4 items-center justify-center rounded-full bg-[color:var(--color-brand-blue)] text-[9px] font-bold text-white mr-1.5">
+                        {i + 1}
+                      </span>
+                      {leg.priceLow.toFixed(2)}–{leg.priceHigh.toFixed(2)}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-[11px] text-muted-foreground">
+                        {leg.offeredMultiplier.toFixed(2)}x
+                      </span>
+                      <button
+                        onClick={() =>
+                          engine.toggleDraftLeg(leg.columnIndex, leg.rowIndex)
+                        }
+                        aria-label="Remove leg"
+                        className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-2 flex items-end justify-between border-t border-[color:var(--color-brand-blue)]/20 pt-2">
+                <span className="font-heading text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Combined
+                </span>
+                <span className="font-display text-xl leading-none">
+                  {parlayQuote.combinedMultiplier > 0
+                    ? `${parlayQuote.combinedMultiplier.toFixed(2)}x`
+                    : "—"}
+                </span>
+              </div>
+              <div className="mb-2 flex items-baseline justify-between">
+                <span className="font-heading text-[11px] text-muted-foreground">
+                  Potential payout
+                </span>
+                <span className="font-heading text-sm">
+                  {parlayQuote.combinedMultiplier > 0
+                    ? `${parlayQuote.combinedPayoutOnStake(stake).toFixed(2)} USDT`
+                    : "—"}
+                </span>
+              </div>
+
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => {
+                    const placed = engine.placeParlay(stake)
+                    if (placed) setParlayMode(false)
+                  }}
+                  disabled={
+                    state.draftLegs.length < MIN_PARLAY_LEGS ||
+                    stake > balance ||
+                    parlayQuote.combinedMultiplier <= 0
+                  }
+                  className="flex-1 rounded-md bg-accent px-3 py-1.5 font-heading text-xs text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Place parlay ({stake.toFixed(2)} USDT)
+                </button>
+                <button
+                  onClick={() => engine.clearDraftLegs()}
+                  className="rounded-md border border-border bg-card px-3 py-1.5 font-heading text-xs text-muted-foreground transition-colors hover:border-muted-foreground hover:text-foreground"
+                >
+                  Clear
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Active parlays (if any) */}
+      {parlays.some((p) => p.status === "OPEN") && (
+        <div>
+          <span className="mb-2 block font-heading text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            Active Parlays
+          </span>
+          <div className="flex flex-col gap-1.5">
+            {parlays
+              .filter((p) => p.status === "OPEN")
+              .map((p) => (
+                <ParlayRow key={p.id} parlay={p} />
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* Positions */}
       <div className="flex-1">
         <div className="mb-2 flex items-center justify-between">
@@ -187,6 +358,11 @@ export function GameSidebar({
           {recent.map((p) => (
             <PositionRow key={p.id} position={p} />
           ))}
+          {recentParlays
+            .filter((p) => p.status !== "OPEN")
+            .map((p) => (
+              <ParlayRow key={p.id} parlay={p} />
+            ))}
         </div>
       </div>
 
@@ -198,6 +374,63 @@ export function GameSidebar({
         Reset demo balance
       </button>
     </aside>
+  )
+}
+
+function ParlayRow({ parlay }: { parlay: ParlayPosition }) {
+  const toneClass =
+    parlay.status === "WON"
+      ? "border-[color:var(--color-brand-green)]/30 bg-[color:var(--color-brand-green)]/10"
+      : parlay.status === "LOST"
+        ? "border-destructive/25 bg-destructive/5"
+        : parlay.status === "REFUNDED"
+          ? "border-muted-foreground/25"
+          : "border-[color:var(--color-brand-blue)]/40 bg-[color:var(--color-brand-blue)]/5"
+
+  const valueLabel =
+    parlay.status === "WON"
+      ? `+${(parlay.actualPayout ?? 0).toFixed(2)}`
+      : parlay.status === "LOST"
+        ? `-${parlay.stake.toFixed(2)}`
+        : parlay.status === "REFUNDED"
+          ? "refund"
+          : `→ ${parlay.potentialPayout.toFixed(2)}`
+
+  const valueClass =
+    parlay.status === "WON"
+      ? "text-[color:var(--color-brand-green)]"
+      : parlay.status === "LOST"
+        ? "text-destructive"
+        : "text-foreground"
+
+  const legsSettled = parlay.legs.filter((l) => l.status !== "OPEN").length
+
+  return (
+    <div
+      className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 ${toneClass}`}
+    >
+      <div className="flex min-w-0 flex-col">
+        <span className="flex items-center gap-1 font-heading text-xs">
+          <Link2 size={10} className="text-[color:var(--color-brand-blue)]" />
+          Parlay · {parlay.legs.length} legs
+          <span className="font-medium">
+            {parlay.combinedMultiplier.toFixed(2)}x
+          </span>
+          {parlay.streakBonus > 1 && (
+            <span className="text-accent">
+              ×{parlay.streakBonus.toFixed(2)}
+            </span>
+          )}
+        </span>
+        <span className="font-heading text-[10px] text-muted-foreground">
+          {parlay.stake.toFixed(2)} USDT ·{" "}
+          {parlay.status === "OPEN"
+            ? `${legsSettled}/${parlay.legs.length} settled`
+            : parlay.status.toLowerCase()}
+        </span>
+      </div>
+      <span className={`font-heading text-sm ${valueClass}`}>{valueLabel}</span>
+    </div>
   )
 }
 
