@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { SiteFooter } from "@/components/site-footer"
 
 export default function LandingPage() {
   return (
@@ -10,6 +11,12 @@ export default function LandingPage() {
           tickr
         </Link>
         <div className="flex items-center gap-3">
+          <Link
+            href="/wiki"
+            className="hidden font-heading text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-block"
+          >
+            Wiki
+          </Link>
           <Link
             href="/spike"
             className="rounded-xl border border-border px-5 py-2.5 font-heading text-sm font-medium text-foreground transition-colors hover:bg-secondary"
@@ -152,22 +159,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border px-6 py-10 md:px-12 lg:px-20">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
-          <span className="font-heading text-sm text-muted-foreground">
-            &copy; 2026 tickr
-          </span>
-          <div className="flex gap-6">
-            <Link
-              href="/chat"
-              className="font-heading text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Chat
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   )
 }
