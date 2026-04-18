@@ -12,6 +12,7 @@ import {
   Gauge,
 } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
+import { SiteNav } from "@/components/site-nav"
 import {
   ChatIllustration,
   GridRushIllustration,
@@ -41,27 +42,13 @@ const TOC: TocItem[] = [
 
 export default function WikiPage() {
   return (
-    <main className="min-h-svh">
-      {/* Top nav */}
-      <nav className="flex items-center justify-between px-6 py-5 md:px-12 lg:px-20">
-        <Link href="/" className="font-heading text-lg font-medium tracking-tight">
-          tickr
-        </Link>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/chat"
-            className="rounded-xl border border-border px-4 py-2 font-heading text-sm text-foreground transition-colors hover:bg-secondary"
-          >
-            Start chat
-          </Link>
-          <Link
-            href="/chat/ideas"
-            className="rounded-xl bg-accent px-4 py-2 font-heading text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
-          >
-            Browse ideas
-          </Link>
-        </div>
-      </nav>
+    <main className="min-h-svh overflow-x-hidden">
+      <SiteNav
+        links={[
+          { href: "/chat", label: "Start chat", outlined: true },
+          { href: "/chat/ideas", label: "Browse ideas", primary: true },
+        ]}
+      />
 
       {/* Header */}
       <header className="px-6 pt-8 pb-12 md:px-12 md:pt-14 md:pb-16 lg:px-20 lg:pt-20 lg:pb-20">
@@ -83,7 +70,7 @@ export default function WikiPage() {
 
       {/* Main two-column layout: TOC + content */}
       <section className="px-6 pb-16 md:px-12 lg:px-20">
-        <div className="mx-auto max-w-5xl grid gap-10 lg:grid-cols-[200px_1fr] lg:gap-14">
+        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[200px_1fr] lg:gap-14">
           {/* Sticky TOC */}
           <aside className="hidden lg:block">
             <nav className="sticky top-8 flex flex-col gap-1 border-l border-border pl-4">
@@ -102,7 +89,10 @@ export default function WikiPage() {
             </nav>
           </aside>
 
-          <div className="flex flex-col gap-16">
+          {/* min-w-0 lets this grid child shrink below its intrinsic content width
+              (grid/flex children default to min-width:auto, which is what causes
+              horizontal scroll when long code strings or formulas appear). */}
+          <div className="flex min-w-0 flex-col gap-16">
             {/* Overview */}
             <Section id="overview" title="Overview" eyebrow="What is tickr?">
               <p>
@@ -426,8 +416,10 @@ function Formula({ children }: { children: React.ReactNode }) {
 }
 
 function Code({ children }: { children: React.ReactNode }) {
+  // `break-all` so long identifiers / URLs (e.g. the full Deriv WebSocket URL)
+  // wrap on narrow viewports instead of forcing horizontal scroll.
   return (
-    <code className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[0.9em] text-foreground">
+    <code className="break-all rounded bg-secondary px-1.5 py-0.5 font-mono text-[0.9em] text-foreground">
       {children}
     </code>
   )
