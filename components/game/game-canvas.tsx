@@ -5,6 +5,7 @@ import type { GameEngine, FxEvent } from "@/lib/game/engine"
 import type { EngineState } from "@/lib/game/engine"
 import type { ParlayLeg, ParlayPosition, Position } from "@/lib/game/types"
 import { heatColorFor } from "@/lib/game/constants"
+import { flyChip } from "@/lib/motion/fly-chip"
 
 type Props = {
   engine: GameEngine
@@ -158,10 +159,29 @@ export function GameCanvas({ engine, stake, parlayMode, className }: Props) {
       hoverRef.current = null
       canvas.style.cursor = "default"
     }
+    /** Toss a ghost chip from the current stake button onto the cell's pixel
+     * position before mutating engine state. Silent no-op if the stake button
+     * isn't mounted or the cell is off-screen. */
+     const tossChip = (clientX: number, clientY: number, tone: "accent" | "blue") => {
+      const src = document.querySelector<HTMLElement>("[data-active-stake]")
+      if (!src) return
+      const rect = src.getBoundingClientRect()
+      flyChip({
+        fromX: rect.left + rect.width / 2,
+        fromY: rect.top + rect.height / 2,
+        toX: clientX,
+        toY: clientY,
+        label: `${Math.round(stakeRef.current)}`,
+        tone,
+      })
+    }
+
     const onClick = (e: MouseEvent) => {
       const cell = toCell(e.clientX, e.clientY)
       if (!cell) return
-      if (parlayModeRef.current) {
+      const isParlay = parlayModeRef.current
+      tossChip(e.clientX, e.clientY, isParlay ? "blue" : "accent")
+      if (isParlay) {
         engine.toggleDraftLeg(cell.col, cell.row)
       } else {
         engine.placeBet(cell.col, cell.row, stakeRef.current)
@@ -172,7 +192,9 @@ export function GameCanvas({ engine, stake, parlayMode, className }: Props) {
       const t = e.changedTouches[0]
       const cell = toCell(t.clientX, t.clientY)
       if (!cell) return
-      if (parlayModeRef.current) {
+      const isParlay = parlayModeRef.current
+      tossChip(t.clientX, t.clientY, isParlay ? "blue" : "accent")
+      if (isParlay) {
         engine.toggleDraftLeg(cell.col, cell.row)
       } else {
         engine.placeBet(cell.col, cell.row, stakeRef.current)

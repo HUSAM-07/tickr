@@ -27,6 +27,9 @@ import {
   WifiOff,
   XCircle,
 } from "lucide-react"
+import { AnimatedNumber } from "@/components/motion/animated-number"
+import { LiveDot } from "@/components/motion/live-dot"
+import { SlideIn } from "@/components/motion/slide-in"
 
 type Props = {
   state: EngineState
@@ -73,6 +76,12 @@ export function SpikeSidebar({
             className="flex items-center gap-1.5 text-[11px] text-muted-foreground"
             title={`WebSocket: ${connectionState}`}
           >
+            <LiveDot
+              active={
+                connectionState === "connected" ||
+                connectionState === "authorized"
+              }
+            />
             {connectionState === "connected" || connectionState === "authorized" ? (
               <Wifi size={12} />
             ) : (
@@ -82,9 +91,10 @@ export function SpikeSidebar({
           </span>
         </div>
         <div className="mt-1 flex items-end justify-between">
-          <span className="font-display text-3xl leading-none tracking-tight">
-            {balance.toFixed(2)}
-          </span>
+          <AnimatedNumber
+            value={balance}
+            className="font-display text-3xl leading-none tracking-tight"
+          />
           <span className="font-heading text-xs text-muted-foreground">USDT</span>
         </div>
         <div className="mt-2 flex items-center gap-2">
@@ -100,8 +110,7 @@ export function SpikeSidebar({
                   : "text-muted-foreground")
             }
           >
-            {sessionPnl >= 0 ? "+" : ""}
-            {sessionPnl.toFixed(2)} session P&L
+            <AnimatedNumber value={sessionPnl} sign="always" suffix=" session P&L" />
           </span>
         </div>
       </div>
@@ -116,9 +125,13 @@ export function SpikeSidebar({
           <span className="font-heading text-sm">{winStreak > 0 ? `${winStreak}×` : "—"}</span>
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="font-display text-2xl leading-none">
-            +{Math.round((nextStreakBonus - 1) * 100)}%
-          </span>
+          <AnimatedNumber
+            value={(nextStreakBonus - 1) * 100}
+            decimals={0}
+            sign="always"
+            suffix="%"
+            className="font-display text-2xl leading-none"
+          />
           <span className="font-heading text-xs text-muted-foreground">bonus on next win</span>
         </div>
       </div>
@@ -155,9 +168,9 @@ export function SpikeSidebar({
         </div>
       </div>
 
-      {/* Active bet — if any */}
+      {/* Active bet — if any. Keyed so the slide-in replays when a new round arms. */}
       {activeBet && (
-        <div className="rounded-xl border border-accent/40 bg-accent/5 p-3">
+        <SlideIn key={activeBet.id} className="rounded-xl border border-accent/40 bg-accent/5 p-3">
           <div className="flex items-center justify-between">
             <span className="font-heading text-[11px] font-medium uppercase tracking-wide text-accent">
               Armed
@@ -185,7 +198,7 @@ export function SpikeSidebar({
               )}
             </span>
           </div>
-        </div>
+        </SlideIn>
       )}
 
       {/* Window bets */}

@@ -30,6 +30,8 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react"
+import { AnimatedNumber } from "@/components/motion/animated-number"
+import { LiveDot } from "@/components/motion/live-dot"
 
 type Props = {
   state: EngineState
@@ -99,6 +101,12 @@ export function GameSidebar({
             className="flex items-center gap-1.5 text-[11px] text-muted-foreground"
             title={`WebSocket: ${connectionState}`}
           >
+            <LiveDot
+              active={
+                connectionState === "connected" ||
+                connectionState === "authorized"
+              }
+            />
             {connectionState === "connected" ||
             connectionState === "authorized" ? (
               <Wifi size={12} />
@@ -109,9 +117,10 @@ export function GameSidebar({
           </span>
         </div>
         <div className="mt-1 flex items-end justify-between">
-          <span className="font-display text-3xl leading-none tracking-tight">
-            {balance.toFixed(2)}
-          </span>
+          <AnimatedNumber
+            value={balance}
+            className="font-display text-3xl leading-none tracking-tight"
+          />
           <span className="font-heading text-xs text-muted-foreground">
             USDT
           </span>
@@ -131,8 +140,7 @@ export function GameSidebar({
                   : "text-muted-foreground")
             }
           >
-            {sessionPnl >= 0 ? "+" : ""}
-            {sessionPnl.toFixed(2)} session P&L
+            <AnimatedNumber value={sessionPnl} sign="always" suffix=" session P&L" />
           </span>
         </div>
       </div>
@@ -149,9 +157,13 @@ export function GameSidebar({
           </span>
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="font-display text-2xl leading-none">
-            +{Math.round((nextStreakBonus - 1) * 100)}%
-          </span>
+          <AnimatedNumber
+            value={(nextStreakBonus - 1) * 100}
+            decimals={0}
+            sign="always"
+            suffix="%"
+            className="font-display text-2xl leading-none"
+          />
           <span className="font-heading text-xs text-muted-foreground">
             bonus on next win
           </span>
@@ -184,6 +196,9 @@ export function GameSidebar({
             <button
               key={s}
               onClick={() => setStake(s)}
+              // The chip-fly reads `data-active-stake` to find its source
+              // position — keep this attribute on the currently-selected tier.
+              data-active-stake={stake === s ? "true" : undefined}
               className={
                 "rounded-md border px-2 py-1.5 font-heading text-xs transition-colors " +
                 (stake === s

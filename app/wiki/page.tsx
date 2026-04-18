@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteNav } from "@/components/site-nav"
+import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import {
   ChatIllustration,
   GridRushIllustration,
@@ -375,9 +376,13 @@ function Section({
 
 function Illustration({ children }: { children: React.ReactNode }) {
   return (
-    <div className="not-prose mb-6 overflow-hidden rounded-2xl border border-border bg-card">
+    <ScrollReveal
+      className="not-prose mb-6 overflow-hidden rounded-2xl border border-border bg-card"
+      y={20}
+      duration={0.6}
+    >
       <div className="aspect-[16/10] w-full">{children}</div>
-    </div>
+    </ScrollReveal>
   )
 }
 

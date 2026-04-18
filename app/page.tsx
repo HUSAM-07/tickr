@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteNav } from "@/components/site-nav"
+import { ScrollReveal } from "@/components/motion/scroll-reveal"
 
 export default function LandingPage() {
   return (
@@ -41,7 +42,7 @@ export default function LandingPage() {
       </section>
 
       {/* Feature Card Section */}
-      <section className="px-6 pb-20 md:px-12 lg:px-20">
+      <ScrollReveal className="px-6 pb-20 md:px-12 lg:px-20" y={40}>
         <div className="mx-auto max-w-7xl">
           <div className="relative overflow-hidden rounded-3xl">
             {/* Hero background image — centered, cover-cropped */}
@@ -102,13 +103,17 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* Use Case Cards */}
       <section className="px-6 pb-20 md:px-12 lg:px-20">
         <div className="mx-auto max-w-7xl">
           <h2 className="font-display text-2xl mb-8 md:text-3xl">Try it now</h2>
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <ScrollReveal
+            className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
+            stagger={0.08}
+            y={32}
+          >
             <GameCard />
             <SpikeCard />
             <UseCaseCard
@@ -132,7 +137,7 @@ export default function LandingPage() {
               prompt="Compare Volatility 10, 25, 50, 75, and 100 indices — which has the best setup right now?"
               cta="Compare markets"
             />
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
