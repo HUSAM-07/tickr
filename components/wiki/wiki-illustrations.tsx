@@ -320,14 +320,15 @@ export function ParlayIllustration() {
         className="p-link"
       />
 
-      {/* Combined multiplier badge */}
+      {/* Combined multiplier badge — width sized to fit "= 37.5x combined"
+          comfortably (previously the "=" leaked past the left edge of the pill). */}
       <g transform="translate(160 170)">
         <rect
-          x={-46}
-          y={-12}
-          width={92}
-          height={24}
-          rx={12}
+          x={-64}
+          y={-13}
+          width={128}
+          height={26}
+          rx={13}
           fill="var(--color-accent)"
           fillOpacity="0.12"
           stroke="#d97757"
@@ -415,41 +416,47 @@ export function ChatIllustration() {
         <rect x={20} y={104} width={130} height={7} rx={3} fill="currentColor" fillOpacity="0.15" className="c-line c-line-3" />
       </g>
 
-      {/* Inline chart widget (mini candlestick) */}
-      <g transform="translate(20 120)" className="c-widget">
-        <rect width={280} height={64} rx={8} fill="var(--color-card)" stroke="var(--color-border)" strokeWidth="1" />
-        {/* Candles */}
-        {[
-          { x: 14, y: 34, h: 22, bull: true },
-          { x: 34, y: 20, h: 34, bull: true },
-          { x: 54, y: 28, h: 26, bull: false },
-          { x: 74, y: 14, h: 40, bull: true },
-          { x: 94, y: 22, h: 32, bull: false },
-          { x: 114, y: 10, h: 44, bull: true },
-          { x: 134, y: 18, h: 30, bull: true },
-          { x: 154, y: 30, h: 22, bull: false },
-          { x: 174, y: 16, h: 38, bull: true },
-          { x: 194, y: 8, h: 46, bull: true },
-          { x: 214, y: 14, h: 38, bull: true },
-          { x: 234, y: 22, h: 26, bull: false },
-          { x: 254, y: 12, h: 40, bull: true },
-        ].map((c, i) => (
-          <rect
-            key={i}
-            x={c.x}
-            y={c.y}
-            width={8}
-            height={c.h}
-            fill={c.bull ? "#788c5d" : "#d97757"}
+      {/* Inline chart widget (mini candlestick)
+          Positioning lives on the OUTER <g> via the SVG transform attribute.
+          The CSS animation targets the INNER <g> so its `transform:` declarations
+          can't clobber the positional translate (CSS transform overrides the SVG
+          transform attribute, which was previously pushing the widget to (0,0)). */}
+      <g transform="translate(20 120)">
+        <g className="c-widget">
+          <rect width={280} height={64} rx={8} fill="var(--color-card)" stroke="var(--color-border)" strokeWidth="1" />
+          {/* Candles */}
+          {[
+            { x: 14, y: 34, h: 22, bull: true },
+            { x: 34, y: 20, h: 34, bull: true },
+            { x: 54, y: 28, h: 26, bull: false },
+            { x: 74, y: 14, h: 40, bull: true },
+            { x: 94, y: 22, h: 32, bull: false },
+            { x: 114, y: 10, h: 44, bull: true },
+            { x: 134, y: 18, h: 30, bull: true },
+            { x: 154, y: 30, h: 22, bull: false },
+            { x: 174, y: 16, h: 38, bull: true },
+            { x: 194, y: 8, h: 46, bull: true },
+            { x: 214, y: 14, h: 38, bull: true },
+            { x: 234, y: 22, h: 26, bull: false },
+            { x: 254, y: 12, h: 40, bull: true },
+          ].map((c, i) => (
+            <rect
+              key={i}
+              x={c.x}
+              y={c.y}
+              width={8}
+              height={c.h}
+              fill={c.bull ? "#788c5d" : "#d97757"}
+            />
+          ))}
+          {/* SMA overlay */}
+          <path
+            d="M 14 40 Q 40 30 70 28 T 130 24 T 200 18 T 270 22"
+            fill="none"
+            stroke="#6a9bcc"
+            strokeWidth="1.5"
           />
-        ))}
-        {/* SMA overlay */}
-        <path
-          d="M 14 40 Q 40 30 70 28 T 130 24 T 200 18 T 270 22"
-          fill="none"
-          stroke="#6a9bcc"
-          strokeWidth="1.5"
-        />
+        </g>
       </g>
 
       <style>{`
@@ -469,7 +476,7 @@ export function ChatIllustration() {
           24%      { opacity: 1; transform: translateX(0); }
           100%     { opacity: 1; transform: translateX(0); }
         }
-        .c-widget { opacity: 0; transform-origin: 160px 32px; animation: cWidget 5s ease-out infinite; animation-delay: 1.8s; }
+        .c-widget { opacity: 0; transform-origin: 140px 32px; animation: cWidget 5s ease-out infinite; animation-delay: 1.8s; }
         @keyframes cWidget {
           0%, 34%  { opacity: 0; transform: translateY(8px) scale(0.98); }
           44%      { opacity: 1; transform: translateY(0) scale(1); }

@@ -1,42 +1,19 @@
 import Image from "next/image"
 import Link from "next/link"
 import { SiteFooter } from "@/components/site-footer"
+import { SiteNav } from "@/components/site-nav"
 
 export default function LandingPage() {
   return (
-    <main className="min-h-svh">
-      {/* Navigation */}
-      <nav className="flex items-center justify-between px-6 py-5 md:px-12 lg:px-20">
-        <Link href="/" className="font-heading text-lg font-medium tracking-tight">
-          tickr
-        </Link>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/wiki"
-            className="hidden font-heading text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-block"
-          >
-            Wiki
-          </Link>
-          <Link
-            href="/spike"
-            className="rounded-xl border border-border px-5 py-2.5 font-heading text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-          >
-            Spike Hunter
-          </Link>
-          <Link
-            href="/game"
-            className="rounded-xl border border-border px-5 py-2.5 font-heading text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-          >
-            GridRush
-          </Link>
-          <Link
-            href="/chat"
-            className="rounded-xl bg-accent px-5 py-2.5 font-heading text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
-          >
-            Start trading
-          </Link>
-        </div>
-      </nav>
+    <main className="min-h-svh overflow-x-hidden">
+      <SiteNav
+        links={[
+          { href: "/wiki", label: "Wiki" },
+          { href: "/spike", label: "Spike Hunter", outlined: true },
+          { href: "/game", label: "GridRush", outlined: true },
+          { href: "/chat", label: "Start trading", primary: true },
+        ]}
+      />
 
       {/* Hero Section */}
       <section className="px-6 pt-16 pb-20 md:px-12 md:pt-24 md:pb-28 lg:px-20 lg:pt-32 lg:pb-36">
