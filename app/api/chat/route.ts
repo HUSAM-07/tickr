@@ -65,30 +65,51 @@ const ALLOWED_MODELS = new Set([
   "minimax/minimax-m2.1",
 ])
 
-/** Fetch candle data from Deriv REST and compute technical indicators server-side */
-async function computeMarketAnalysis(
-  symbol: string,
-  timeframe?: string,
-  indicators?: string[]
-): Promise<Record<string, unknown>> {
-  const granularity = INTERVAL_MAP[timeframe ?? "5m"] ?? 300
-  const count = 200
+type Candle = {
+  epoch: number
+  open: number
+  high: number
+  low: number
+  close: number
+}
 
-  // Fetch candles via short-lived WebSocket to the new public endpoint
+/** Minimum candle counts required for each indicator (period + warmup headroom). */
+const MIN_CANDLES: Record<string, number> = {
+  sma: 50,       // SMA-50 needs 50 closes
+  ema: 20,       // EMA-20
+  rsi: 15,       // RSI-14 + 1
+  macd: 35,      // slowPeriod 26 + signalPeriod 9
+  bollinger: 20, // period 20
+  atr: 15,       // period 14 + 1
+}
+
+/** Timeframe fallback cascade — if a timeframe returns too few candles, try the next one up. */
+const FALLBACK_ORDER = ["1m", "5m", "15m", "30m", "1h", "4h", "1d"]
+
+async function fetchCandles(
+  symbol: string,
+  granularity: number,
+  count: number
+): Promise<Candle[]> {
   const data = await new Promise<Record<string, unknown>>(async (resolve, reject) => {
     const { default: WS } = await import("ws")
     const ws = new WS("wss://api.derivws.com/trading/v1/options/ws/public")
-    const timeout = setTimeout(() => { ws.close(); reject(new Error("Deriv WS timeout")) }, 15000)
+    const timeout = setTimeout(() => {
+      ws.close()
+      reject(new Error("Deriv WS timeout"))
+    }, 15000)
 
     ws.on("open", () => {
-      ws.send(JSON.stringify({
-        ticks_history: symbol,
-        style: "candles",
-        granularity,
-        count,
-        end: "latest",
-        req_id: 1,
-      }))
+      ws.send(
+        JSON.stringify({
+          ticks_history: symbol,
+          style: "candles",
+          granularity,
+          count,
+          end: "latest",
+          req_id: 1,
+        })
+      )
     })
     ws.on("message", (msg: Buffer) => {
       clearTimeout(timeout)
@@ -96,58 +117,139 @@ async function computeMarketAnalysis(
       ws.close()
       resolve(parsed)
     })
-    ws.on("error", (err: Error) => { clearTimeout(timeout); reject(err) })
+    ws.on("error", (err: Error) => {
+      clearTimeout(timeout)
+      reject(err)
+    })
   })
 
   if ((data as { error?: { message: string } }).error) {
-    throw new Error((data as { error: { message: string } }).error.message || "Failed to fetch market data")
+    throw new Error(
+      (data as { error: { message: string } }).error.message ||
+        "Failed to fetch market data"
+    )
   }
 
-  const candles = data.candles as Array<{
-    epoch: number
-    open: number
-    high: number
-    low: number
-    close: number
-  }>
+  return ((data.candles as Candle[]) ?? []).map((c) => ({
+    epoch: Number(c.epoch),
+    open: Number(c.open),
+    high: Number(c.high),
+    low: Number(c.low),
+    close: Number(c.close),
+  }))
+}
 
-  if (!candles || candles.length === 0) {
-    throw new Error("No candle data available for this symbol")
+/** Fetch candle data from Deriv and compute technical indicators server-side. */
+async function computeMarketAnalysis(
+  symbol: string,
+  timeframe?: string,
+  indicators?: string[]
+): Promise<Record<string, unknown>> {
+  const requestedTf = timeframe ?? "5m"
+  const requestedIndicators = indicators ?? ["sma", "rsi"]
+
+  // Request count sized to the most demanding indicator, with generous headroom
+  // so markets with trading-hour gaps (forex, commodities) still yield enough candles.
+  const neededForIndicators = Math.max(
+    ...requestedIndicators.map((k) => MIN_CANDLES[k] ?? 0),
+    50
+  )
+  const count = Math.max(500, neededForIndicators * 4)
+
+  // Try requested timeframe first, then cascade to higher granularities if data is too thin.
+  const tfsToTry = [
+    requestedTf,
+    ...FALLBACK_ORDER.slice(
+      FALLBACK_ORDER.indexOf(requestedTf) + 1
+    ).filter((tf) => INTERVAL_MAP[tf]),
+  ]
+
+  let candles: Candle[] = []
+  let tfUsed = requestedTf
+  let fallbackReason: string | null = null
+  let lastError: Error | null = null
+
+  for (const tf of tfsToTry) {
+    const gran = INTERVAL_MAP[tf]
+    if (!gran) continue
+    try {
+      const fetched = await fetchCandles(symbol, gran, count)
+      if (fetched.length >= neededForIndicators) {
+        candles = fetched
+        tfUsed = tf
+        if (tf !== requestedTf) {
+          fallbackReason = `Only ${fetched.length < neededForIndicators ? "insufficient" : "limited"} candle history available for ${symbol} on ${requestedTf}; fell back to ${tf}.`
+        }
+        break
+      }
+      // Keep the best set we've seen as a partial result in case every fallback is thin.
+      if (fetched.length > candles.length) {
+        candles = fetched
+        tfUsed = tf
+        fallbackReason = `Limited candle history on ${requestedTf} for ${symbol}; using ${tf} (${fetched.length} candles).`
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err))
+    }
   }
 
-  const closes = candles.map((c) => Number(c.close))
-  const highs = candles.map((c) => Number(c.high))
-  const lows = candles.map((c) => Number(c.low))
+  if (candles.length === 0) {
+    throw new Error(
+      lastError?.message ?? `No candle data available for ${symbol}`
+    )
+  }
+
+  const closes = candles.map((c) => c.close)
+  const highs = candles.map((c) => c.high)
+  const lows = candles.map((c) => c.low)
   const currentPrice = closes[closes.length - 1]
   const prevPrice = closes[closes.length - 2] ?? currentPrice
   const priceChange = ((currentPrice - prevPrice) / prevPrice) * 100
+  const granUsed = INTERVAL_MAP[tfUsed]
 
-  const requestedIndicators = indicators ?? ["sma", "rsi"]
   const result: Record<string, unknown> = {
     symbol,
-    timeframe: timeframe ?? "5m",
+    timeframe: tfUsed,
+    timeframe_requested: requestedTf,
     current_price: currentPrice,
     price_change_pct: Number(priceChange.toFixed(4)),
     candles_analyzed: candles.length,
-    high_24: Math.max(...highs.slice(-Math.min(highs.length, Math.floor(86400 / granularity)))),
-    low_24: Math.min(...lows.slice(-Math.min(lows.length, Math.floor(86400 / granularity)))),
+    high_24: Math.max(
+      ...highs.slice(-Math.min(highs.length, Math.floor(86400 / granUsed)))
+    ),
+    low_24: Math.min(
+      ...lows.slice(-Math.min(lows.length, Math.floor(86400 / granUsed)))
+    ),
+  }
+  if (fallbackReason) result.fallback_reason = fallbackReason
+
+  const unavailable: string[] = []
+  const markUnavailable = (name: string, min: number) => {
+    unavailable.push(`${name} (needs ${min} candles, have ${candles.length})`)
   }
 
   if (requestedIndicators.includes("sma")) {
     const sma20 = SMA.calculate({ period: 20, values: closes })
     const sma50 = SMA.calculate({ period: 50, values: closes })
-    result.sma_20 = sma20.length > 0 ? Number(sma20[sma20.length - 1].toFixed(5)) : null
-    result.sma_50 = sma50.length > 0 ? Number(sma50[sma50.length - 1].toFixed(5)) : null
+    result.sma_20 =
+      sma20.length > 0 ? Number(sma20[sma20.length - 1].toFixed(5)) : null
+    result.sma_50 =
+      sma50.length > 0 ? Number(sma50[sma50.length - 1].toFixed(5)) : null
+    if (result.sma_50 == null) markUnavailable("SMA-50", 50)
   }
 
   if (requestedIndicators.includes("ema")) {
     const ema20 = EMA.calculate({ period: 20, values: closes })
-    result.ema_20 = ema20.length > 0 ? Number(ema20[ema20.length - 1].toFixed(5)) : null
+    result.ema_20 =
+      ema20.length > 0 ? Number(ema20[ema20.length - 1].toFixed(5)) : null
+    if (result.ema_20 == null) markUnavailable("EMA-20", 20)
   }
 
   if (requestedIndicators.includes("rsi")) {
     const rsi = RSI.calculate({ period: 14, values: closes })
-    result.rsi_14 = rsi.length > 0 ? Number(rsi[rsi.length - 1].toFixed(2)) : null
+    result.rsi_14 =
+      rsi.length > 0 ? Number(rsi[rsi.length - 1].toFixed(2)) : null
+    if (result.rsi_14 == null) markUnavailable("RSI-14", 15)
   }
 
   if (requestedIndicators.includes("macd")) {
@@ -164,13 +266,21 @@ async function computeMarketAnalysis(
       result.macd = {
         macd: latest.MACD ? Number(latest.MACD.toFixed(5)) : null,
         signal: latest.signal ? Number(latest.signal.toFixed(5)) : null,
-        histogram: latest.histogram ? Number(latest.histogram.toFixed(5)) : null,
+        histogram:
+          latest.histogram ? Number(latest.histogram.toFixed(5)) : null,
       }
+    } else {
+      result.macd = null
+      markUnavailable("MACD", 35)
     }
   }
 
   if (requestedIndicators.includes("bollinger")) {
-    const bb = BollingerBands.calculate({ period: 20, values: closes, stdDev: 2 })
+    const bb = BollingerBands.calculate({
+      period: 20,
+      values: closes,
+      stdDev: 2,
+    })
     const latest = bb[bb.length - 1]
     if (latest) {
       result.bollinger = {
@@ -178,6 +288,9 @@ async function computeMarketAnalysis(
         middle: Number(latest.middle.toFixed(5)),
         lower: Number(latest.lower.toFixed(5)),
       }
+    } else {
+      result.bollinger = null
+      markUnavailable("Bollinger Bands", 20)
     }
   }
 
@@ -188,7 +301,13 @@ async function computeMarketAnalysis(
       low: lows,
       close: closes,
     })
-    result.atr_14 = atr.length > 0 ? Number(atr[atr.length - 1].toFixed(5)) : null
+    result.atr_14 =
+      atr.length > 0 ? Number(atr[atr.length - 1].toFixed(5)) : null
+    if (result.atr_14 == null) markUnavailable("ATR-14", 15)
+  }
+
+  if (unavailable.length > 0) {
+    result.unavailable_indicators = unavailable
   }
 
   // Derive trend direction from SMA crossover
