@@ -19,12 +19,15 @@ function RsiGauge({ value }: { value: number }) {
   const cy = 55
   const r = 40
 
-  // Arc path from 180° (left) to target angle
+  // Arc path from 180° (left) to target angle along the top semicircle.
+  // A half-gauge never sweeps past 180°, so largeArc must stay 0 — setting it
+  // to 1 when angle > 90 makes SVG take the longer arc (through the bottom of
+  // the circle), which then gets clipped by the viewBox into fragments.
   const startX = cx - r
   const startY = cy
   const endX = cx + r * Math.cos(Math.PI - rad)
   const endY = cy - r * Math.sin(Math.PI - rad)
-  const largeArc = angle > 90 ? 1 : 0
+  const largeArc = 0
 
   // Color based on RSI zones
   const color =
