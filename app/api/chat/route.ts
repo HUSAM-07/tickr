@@ -86,6 +86,66 @@ const MIN_CANDLES: Record<string, number> = {
 /** Timeframe fallback cascade — if a timeframe returns too few candles, try the next one up. */
 const FALLBACK_ORDER = ["1m", "5m", "15m", "30m", "1h", "4h", "1d"]
 
+type MarketStatus = {
+  exchange_is_open: boolean
+  is_trading_suspended: boolean
+}
+
+/**
+ * Fetch the exchange open/suspended flags for a single symbol via Deriv's
+ * active_symbols API. Authoritative, unlike epoch-staleness heuristics.
+ * Returns null if the call fails or the symbol isn't listed — caller will fall
+ * back to last-candle-age inference.
+ */
+async function fetchMarketStatus(symbol: string): Promise<MarketStatus | null> {
+  try {
+    const data = await new Promise<Record<string, unknown>>(
+      async (resolve, reject) => {
+        const { default: WS } = await import("ws")
+        const ws = new WS("wss://api.derivws.com/trading/v1/options/ws/public")
+        const timeout = setTimeout(() => {
+          ws.close()
+          reject(new Error("active_symbols timeout"))
+        }, 8000)
+
+        ws.on("open", () => {
+          ws.send(
+            JSON.stringify({
+              active_symbols: "brief",
+              product_type: "basic",
+              req_id: 2,
+            })
+          )
+        })
+        ws.on("message", (msg: Buffer) => {
+          clearTimeout(timeout)
+          const parsed = JSON.parse(msg.toString())
+          ws.close()
+          resolve(parsed)
+        })
+        ws.on("error", (err: Error) => {
+          clearTimeout(timeout)
+          reject(err)
+        })
+      }
+    )
+
+    const list = (data.active_symbols ?? []) as Array<{
+      symbol: string
+      exchange_is_open: number
+      is_trading_suspended: number
+    }>
+    const match = list.find((s) => s.symbol === symbol)
+    if (!match) return null
+    return {
+      exchange_is_open: Boolean(match.exchange_is_open),
+      is_trading_suspended: Boolean(match.is_trading_suspended),
+    }
+  } catch {
+    return null
+  }
+}
+
 async function fetchCandles(
   symbol: string,
   granularity: number,
@@ -169,6 +229,10 @@ async function computeMarketAnalysis(
   let fallbackReason: string | null = null
   let lastError: Error | null = null
 
+  // Kick off the authoritative market-status lookup in parallel with the first
+  // candle fetch so we don't pay the extra round-trip sequentially.
+  const statusPromise = fetchMarketStatus(symbol)
+
   for (const tf of tfsToTry) {
     const gran = INTERVAL_MAP[tf]
     if (!gran) continue
@@ -193,6 +257,8 @@ async function computeMarketAnalysis(
     }
   }
 
+  const status = await statusPromise
+
   if (candles.length === 0) {
     throw new Error(
       lastError?.message ?? `No candle data available for ${symbol}`
@@ -207,6 +273,26 @@ async function computeMarketAnalysis(
   const priceChange = ((currentPrice - prevPrice) / prevPrice) * 100
   const granUsed = INTERVAL_MAP[tfUsed]
 
+  const lastCandle = candles[candles.length - 1]
+  const lastTickAt = lastCandle.epoch
+  const nowSec = Math.floor(Date.now() / 1000)
+  const lastTickAgeSec = Math.max(0, nowSec - lastTickAt)
+  // Heuristic staleness: a live market produces a new candle within ~1 interval.
+  // If more than 2× the granularity has passed with no new candle, the feed is dark.
+  const staleByEpoch = lastTickAgeSec > granUsed * 2
+
+  // Prefer the authoritative active_symbols signal; fall back to epoch staleness.
+  let marketStatus: "open" | "closed" | "suspended"
+  if (status?.is_trading_suspended) {
+    marketStatus = "suspended"
+  } else if (status && !status.exchange_is_open) {
+    marketStatus = "closed"
+  } else if (!status && staleByEpoch) {
+    marketStatus = "closed"
+  } else {
+    marketStatus = "open"
+  }
+
   const result: Record<string, unknown> = {
     symbol,
     timeframe: tfUsed,
@@ -214,6 +300,12 @@ async function computeMarketAnalysis(
     current_price: currentPrice,
     price_change_pct: Number(priceChange.toFixed(4)),
     candles_analyzed: candles.length,
+    market_status: marketStatus,
+    exchange_is_open: status?.exchange_is_open ?? null,
+    is_trading_suspended: status?.is_trading_suspended ?? null,
+    last_tick_at: lastTickAt,
+    last_tick_age_seconds: lastTickAgeSec,
+    price_is_stale: marketStatus !== "open",
     high_24: Math.max(
       ...highs.slice(-Math.min(highs.length, Math.floor(86400 / granUsed)))
     ),
@@ -222,6 +314,13 @@ async function computeMarketAnalysis(
     ),
   }
   if (fallbackReason) result.fallback_reason = fallbackReason
+  if (marketStatus !== "open") {
+    const closedAt = new Date(lastTickAt * 1000).toISOString()
+    result.market_status_note =
+      marketStatus === "suspended"
+        ? `Trading is suspended for ${symbol}. Showing last known price from ${closedAt}.`
+        : `Market is closed for ${symbol}. Showing last close from ${closedAt}.`
+  }
 
   const unavailable: string[] = []
   const markUnavailable = (name: string, min: number) => {
