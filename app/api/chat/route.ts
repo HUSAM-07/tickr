@@ -35,7 +35,7 @@ const WIDGET_NAMES = new Set([
 ])
 
 // analyze_market is a non-widget tool — it returns data to the LLM
-const ANALYSIS_TOOL_NAMES = new Set(["analyze_market"])
+const ANALYSIS_TOOL_NAMES = new Set(["analyze_market", "web_search"])
 
 /** Map tool function names to widget type identifiers */
 const TOOL_TO_WIDGET: Record<string, WidgetType> = {
@@ -206,6 +206,64 @@ async function computeMarketAnalysis(
   result.volatility = rangeRatio > 0.01 ? "high" : rangeRatio > 0.003 ? "medium" : "low"
 
   return result
+}
+
+/** Perform a web search via Brave Search API — server-side only */
+async function performWebSearch(
+  query: string,
+  count: number = 5
+): Promise<Record<string, unknown>> {
+  const apiKey = process.env.BRAVE_API_KEY
+  if (!apiKey) {
+    return { error: "Web search is not configured. BRAVE_API_KEY is missing." }
+  }
+
+  const url = new URL("https://api.search.brave.com/res/v1/web/search")
+  url.searchParams.set("q", query)
+  url.searchParams.set("count", String(Math.min(Math.max(count, 1), 10)))
+  url.searchParams.set("text_decorations", "false")
+  url.searchParams.set("search_lang", "en")
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Accept: "application/json",
+      "Accept-Encoding": "gzip",
+      "X-Subscription-Token": apiKey,
+    },
+  })
+
+  if (!response.ok) {
+    return { error: `Search failed: ${response.status} ${response.statusText}` }
+  }
+
+  const data = await response.json()
+
+  // Extract and condense results for the LLM context window
+  const webResults = (data.web?.results ?? [])
+    .slice(0, count)
+    .map((r: { title: string; url: string; description: string; age?: string }) => ({
+      title: r.title,
+      url: r.url,
+      snippet: r.description,
+      age: r.age ?? null,
+    }))
+
+  // Include news results if present
+  const newsResults = (data.news?.results ?? [])
+    .slice(0, 3)
+    .map((r: { title: string; url: string; description: string; age?: string }) => ({
+      title: r.title,
+      url: r.url,
+      snippet: r.description,
+      age: r.age ?? null,
+    }))
+
+  return {
+    query,
+    web_results: webResults,
+    news_results: newsResults,
+    result_count: webResults.length + newsResults.length,
+  }
 }
 
 export async function POST(request: Request) {
@@ -383,8 +441,7 @@ export async function POST(request: Request) {
             for (const tc of assistantToolCalls) {
               let toolResult: string
 
-              if (ANALYSIS_TOOL_NAMES.has(tc.function.name)) {
-                // analyze_market: compute server-side technical analysis
+              if (tc.function.name === "analyze_market") {
                 try {
                   const args = JSON.parse(tc.function.arguments)
                   toolResult = JSON.stringify(
@@ -393,6 +450,17 @@ export async function POST(request: Request) {
                 } catch (err) {
                   toolResult = JSON.stringify({
                     error: err instanceof Error ? err.message : "Analysis failed",
+                  })
+                }
+              } else if (tc.function.name === "web_search") {
+                try {
+                  const args = JSON.parse(tc.function.arguments)
+                  toolResult = JSON.stringify(
+                    await performWebSearch(args.query, args.count)
+                  )
+                } catch (err) {
+                  toolResult = JSON.stringify({
+                    error: err instanceof Error ? err.message : "Web search failed",
                   })
                 }
               } else {
