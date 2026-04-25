@@ -316,13 +316,14 @@ This platform provides:
 ✅ Live market news search
 ✅ Educational explanations of trading concepts, indicators, and strategies
 ✅ Trade ticket preparation for user review
+✅ Demo trade execution directly from the chat — trades are placed on a Deriv demo account with virtual funds
 
 This platform does NOT currently support:
-❌ Live trade execution or placing real/demo orders (coming soon)
+❌ Real-money trade execution (demo only)
 ❌ Account management or fund transfers
 ❌ Custom indicator creation
 
-When users ask about placing actual trades, explain: "Right now, tickr focuses on analysis, education, and signal generation. You can use our signals to inform your trading decisions on the Deriv platform directly. Live trade execution is coming soon!"
+When users want to place a trade, use the place_trade tool to prepare a trade ticket. The user will see live pricing and can confirm to execute the trade on their demo account. Always show a chart and analysis first before suggesting a trade.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 INSTRUMENT CATALOG (SOURCE OF TRUTH)
