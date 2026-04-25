@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import type { TradeTicketData } from "@/lib/types"
 import { useTradingContext } from "@/hooks/trading-context"
 import { getSymbolName, getContractLabel, formatDuration } from "@/lib/deriv/utils"
-import type { ProposalResponse, BuyResponse } from "@/lib/deriv/types"
+import type { ProposalResponse, BuyResponse, ProposalOpenContractResponse } from "@/lib/deriv/types"
 import {
   ArrowUpCircle,
   ArrowDownCircle,
@@ -13,7 +13,7 @@ import {
   XCircle,
 } from "lucide-react"
 
-type TicketState = "pricing" | "confirming" | "executing" | "won" | "lost" | "error"
+type TicketState = "pricing" | "confirming" | "executing" | "tracking" | "won" | "lost" | "error"
 
 export function WidgetTradeTicket({ data }: { data: TradeTicketData }) {
   const { symbol, contract_type, amount, duration, duration_unit, barrier } = data
@@ -26,6 +26,7 @@ export function WidgetTradeTicket({ data }: { data: TradeTicketData }) {
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<{ pnl: number; soldFor: number } | null>(null)
   const unsubRef = useRef<(() => void) | null>(null)
+  const contractUnsubRef = useRef<(() => void) | null>(null)
 
   // Auto-connect and subscribe to proposal
   useEffect(() => {
@@ -65,18 +66,30 @@ export function WidgetTradeTicket({ data }: { data: TradeTicketData }) {
     }
   }, [connectionState, client, connect, symbol, contract_type, amount, duration, duration_unit, barrier])
 
+  // Cleanup contract tracking subscription on unmount
+  useEffect(() => {
+    return () => {
+      if (contractUnsubRef.current) {
+        contractUnsubRef.current()
+        contractUnsubRef.current = null
+      }
+    }
+  }, [])
+
   async function handleConfirm() {
     if (!proposalId || !askPrice) return
 
     setState("executing")
-    // Unsubscribe from proposal stream
-    if (unsubRef.current) {
-      unsubRef.current()
-      unsubRef.current = null
-    }
 
     try {
+      // Buy FIRST, then unsubscribe — forgetting the proposal stream invalidates its IDs
       const buyResult = (await client.buy(proposalId, askPrice)) as BuyResponse
+
+      // Now safe to unsubscribe from proposal stream
+      if (unsubRef.current) {
+        unsubRef.current()
+        unsubRef.current = null
+      }
       if (buyResult.error) {
         setError(buyResult.error.message)
         setState("error")
@@ -84,22 +97,38 @@ export function WidgetTradeTicket({ data }: { data: TradeTicketData }) {
       }
 
       if (buyResult.buy) {
-        const buyPrice = buyResult.buy.buy_price
-        const paidPayout = buyResult.buy.payout
+        const contractId = buyResult.buy.contract_id
 
-        // For instant-result contracts (ticks), the result is immediate
-        // For longer contracts, we'd need to subscribe to proposal_open_contract
-        // For now, show as pending and the user can check portfolio
-        if (paidPayout > buyPrice) {
-          setResult({ pnl: paidPayout - buyPrice, soldFor: paidPayout })
-          setState("won")
-        } else {
-          // Contract is open — show success state
-          setResult({ pnl: 0, soldFor: 0 })
-          setState("won") // "Purchased" state
-        }
+        // Subscribe to contract outcome
+        setState("tracking")
+
+        const { unsubscribe: unsubContract } = client.subscribeProposalOpenContract(
+          contractId,
+          (data: ProposalOpenContractResponse) => {
+            const poc = data.proposal_open_contract
+            if (!poc) return
+
+            if (poc.is_sold || poc.is_expired) {
+              if (poc.status === "won") {
+                setResult({ pnl: poc.profit, soldFor: poc.sell_price ?? poc.payout })
+                setState("won")
+              } else {
+                setResult({ pnl: poc.profit, soldFor: poc.sell_price ?? 0 })
+                setState("lost")
+              }
+              unsubContract()
+              contractUnsubRef.current = null
+            }
+          }
+        )
+        contractUnsubRef.current = unsubContract
       }
     } catch (err) {
+      // Unsubscribe on failure too
+      if (unsubRef.current) {
+        unsubRef.current()
+        unsubRef.current = null
+      }
       setError(err instanceof Error ? err.message : "Trade failed")
       setState("error")
     }
@@ -182,6 +211,13 @@ export function WidgetTradeTicket({ data }: { data: TradeTicketData }) {
           <div className="flex items-center justify-center gap-2 py-4">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Executing trade...</span>
+          </div>
+        )}
+
+        {state === "tracking" && (
+          <div className="flex items-center justify-center gap-2 py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-accent" />
+            <span className="text-sm text-muted-foreground">Contract open — watching outcome...</span>
           </div>
         )}
 

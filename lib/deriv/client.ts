@@ -19,6 +19,7 @@ import type {
   ProposalResponse,
   BuyResponse,
   BalanceResponse,
+  ProposalOpenContractResponse,
 } from "./types"
 
 type MessageHandler = (response: DerivResponse) => void
@@ -43,6 +44,7 @@ class DerivWSClient {
   private reconnectAttempts = 0
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private wsUrl: string | null = null // Stores authenticated WS URL for reconnect
+  private reconnectAuthCallback: (() => Promise<string | null>) | null = null
 
   // ── Connection lifecycle ──
 
@@ -143,6 +145,25 @@ class DerivWSClient {
     }
     this.reconnectAttempts = 0
     this.connectToUrl(authenticatedUrl)
+  }
+
+  /**
+   * Connect directly to a pre-authenticated WS URL (from server-side auth proxy).
+   * Disconnects from current WS and reconnects to the authenticated URL.
+   */
+  authorizeWithUrl(authenticatedUrl: string): void {
+    if (this.ws) {
+      this.reconnectAttempts = MAX_RECONNECT_ATTEMPTS // prevent auto-reconnect during switch
+      this.ws.close()
+      this.ws = null
+    }
+    this.reconnectAttempts = 0
+    this.connectToUrl(authenticatedUrl)
+  }
+
+  /** Register a callback to fetch a fresh authenticated WS URL on reconnect (OTPs are single-use) */
+  setReconnectAuthCallback(cb: (() => Promise<string | null>) | null): void {
+    this.reconnectAuthCallback = cb
   }
 
   // ── Core send/receive ──
@@ -287,7 +308,7 @@ class DerivWSClient {
         currency: "USD",
         duration: params.duration,
         duration_unit: params.durationUnit,
-        symbol: params.symbol,
+        underlying_symbol: params.symbol,
         ...(params.barrier ? { barrier: params.barrier } : {}),
       },
       (data) => callback(data as ProposalResponse)
@@ -296,6 +317,16 @@ class DerivWSClient {
 
   async buy(proposalId: string, price: number): Promise<BuyResponse> {
     return (await this.send({ buy: proposalId, price })) as BuyResponse
+  }
+
+  subscribeProposalOpenContract(
+    contractId: number,
+    callback: (data: ProposalOpenContractResponse) => void
+  ): { promise: Promise<DerivResponse>; unsubscribe: () => void } {
+    return this.subscribe(
+      { proposal_open_contract: 1, contract_id: contractId },
+      (data) => callback(data as ProposalOpenContractResponse)
+    )
   }
 
   subscribeBalance(
@@ -382,8 +413,20 @@ class DerivWSClient {
     )
     this.reconnectAttempts++
 
-    this.reconnectTimer = setTimeout(() => {
-      // Reconnect to the same URL we were connected to (public or authenticated)
+    this.reconnectTimer = setTimeout(async () => {
+      // For authenticated sessions, OTPs are single-use — fetch a fresh URL
+      const isAuthenticatedSession =
+        this.wsUrl && (this.wsUrl.includes("/ws/demo") || this.wsUrl.includes("/ws/real"))
+
+      if (isAuthenticatedSession && this.reconnectAuthCallback) {
+        const freshUrl = await this.reconnectAuthCallback()
+        if (freshUrl) {
+          this.connectToUrl(freshUrl)
+          return
+        }
+        // Fallback to public WS if re-auth fails
+      }
+
       this.connectToUrl(this.wsUrl ?? DERIV_WS_PUBLIC)
     }, delay)
   }
