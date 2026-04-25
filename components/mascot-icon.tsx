@@ -48,130 +48,94 @@ export function MascotIcon({ size = 40 }: { size?: number }) {
 }
 
 /**
- * Animated trading mascot character — watches a mini candlestick chart.
- * Used in: loading state, empty sidebar.
+ * Animated trading mascot character — pixel-art robot.
+ * Used in: chat heading, loading state, empty sidebar.
  */
 export function MascotCharacter({ size = 40 }: { size?: number }) {
-  const aspectRatio = 160 / 86
+  const aspectRatio = 1024 / 851
   const width = size * aspectRatio
   const height = size
 
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 160 86"
+      viewBox="0 0 1024 851"
       width={width}
       height={height}
       className="shrink-0"
+      fill="none"
     >
       <style>{`
-        .mc-right-arm {
-          animation: mc-arm-point 3s ease-in-out infinite;
-          transform-origin: 86px 40px;
+        .mc-body {
+          animation: mc-float 3s ease-in-out infinite;
         }
-        .mc-eye-l {
-          animation: mc-blink 4s ease-in-out infinite, mc-watch 3s ease-in-out infinite;
-          transform-origin: 42px 39px;
+        .mc-eye-left, .mc-eye-right {
+          animation: mc-blink 4s ease-in-out infinite;
+          transform-origin: center;
         }
-        .mc-eye-r {
-          animation: mc-blink 4s ease-in-out infinite, mc-watch 3s ease-in-out infinite;
-          transform-origin: 72px 39px;
+        .mc-eye-right {
+          animation-delay: 0.1s;
         }
-        .mc-chart-line {
-          animation: mc-tick 3s ease-in-out infinite;
+        .mc-screen-left {
+          animation: mc-glow 3s ease-in-out infinite;
         }
-        .mc-chart-dot {
-          animation: mc-tick-dot 3s ease-in-out infinite;
+        .mc-screen-right {
+          animation: mc-glow 3s ease-in-out infinite;
+          animation-delay: 1.5s;
         }
-        .mc-candle-1 { animation: mc-c1 3s ease-in-out infinite; }
-        .mc-candle-2 { animation: mc-c2 3s ease-in-out infinite; }
-        .mc-candle-3 { animation: mc-c3 3s ease-in-out infinite; }
-        .mc-candle-4 { animation: mc-c4 3s ease-in-out infinite; }
-        @keyframes mc-arm-point {
-          0%, 100% { transform: rotate(-5deg); }
-          50% { transform: rotate(5deg); }
+        @keyframes mc-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
         }
         @keyframes mc-blink {
           0%, 42%, 48%, 100% { transform: scaleY(1); }
           45% { transform: scaleY(0.1); }
         }
-        @keyframes mc-watch {
-          0%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-1px); }
-          70% { transform: translateY(1px); }
-        }
-        @keyframes mc-tick {
-          0% { d: path("M100,68 L112,62 L124,66 L136,54 L148,58"); }
-          25% { d: path("M100,66 L112,58 L124,64 L136,50 L148,52"); }
-          50% { d: path("M100,64 L112,60 L124,56 L136,58 L148,48"); }
-          75% { d: path("M100,68 L112,64 L124,60 L136,56 L148,54"); }
-          100% { d: path("M100,68 L112,62 L124,66 L136,54 L148,58"); }
-        }
-        @keyframes mc-tick-dot {
-          0% { cx: 148; cy: 58; }
-          25% { cx: 148; cy: 52; }
-          50% { cx: 148; cy: 48; }
-          75% { cx: 148; cy: 54; }
-          100% { cx: 148; cy: 58; }
-        }
-        @keyframes mc-c1 {
-          0%, 100% { height: 14px; y: 60; }
-          50% { height: 18px; y: 56; }
-        }
-        @keyframes mc-c2 {
-          0%, 100% { height: 10px; y: 58; }
-          50% { height: 16px; y: 54; }
-        }
-        @keyframes mc-c3 {
-          0%, 100% { height: 18px; y: 54; }
-          50% { height: 12px; y: 58; }
-        }
-        @keyframes mc-c4 {
-          0%, 100% { height: 12px; y: 56; }
-          50% { height: 20px; y: 50; }
+        @keyframes mc-glow {
+          0%, 100% { opacity: 0.85; }
+          50% { opacity: 1; }
         }
       `}</style>
 
-      {/* Shadow */}
-      <ellipse cx="50" cy="84" rx="22" ry="4" fill="#000" opacity="0.2" />
+      <g className="mc-body">
+        {/* Outer shell */}
+        <path d="M877.552 1.13467L297.437 0L284.949 10.212L283.814 24.9627H224.78L217.969 28.3667L211.157 39.7133V49.9253L196.399 48.7907L188.452 53.3293L183.911 76.0227H168.018L160.071 80.5613L156.665 87.3693V103.255H141.907L132.825 108.928L129.419 115.736V131.621L113.525 130.487L105.579 135.025L102.173 141.833L103.308 157.719L86.2794 158.853L76.0621 170.2V208.779L63.5743 211.048L53.357 220.125L52.2217 260.973L38.5987 262.108L28.3814 272.32L26.1109 315.437L7.94678 318.841L0 331.323L1.13525 601.373L12.4878 611.585L27.2461 612.72L28.3814 653.568L36.3282 661.511L48.816 662.645L49.9512 673.992L56.7627 684.204L65.8448 688.743H78.3326L79.4678 705.763L89.6851 714.84L102.173 715.975L103.308 729.591L110.12 738.668L122.608 743.207H156.665L157.8 809.017L164.612 815.825L183.911 818.095V832.845L192.993 847.596L199.805 851H210.022L217.969 845.327H834.412L841.224 849.865L854.847 848.731L868.47 830.576L869.605 797.671L866.2 770.439L958.155 769.304L968.372 757.957L969.508 743.207L980.86 742.072L989.942 734.129L995.619 723.917V715.975L1013.78 713.705L1020.59 706.897L1022.86 641.087L1020.59 577.545L1024 569.603V559.391L1019.46 551.448L1012.65 548.044H993.348L995.619 532.159L993.348 418.692L996.754 400.537L988.807 390.325L969.508 389.191V196.297L961.561 186.085L942.262 184.951V65.8107L939.991 56.7333L933.18 49.9253L916.151 48.7907L915.016 32.9053L910.474 24.9627L892.31 21.5587L887.769 7.94267L877.552 1.13467Z" fill="#E9EEEB"/>
+        <path d="M977.455 566.199L976.319 567.333V568.468V695.551L975.184 696.685H974.049H949.073V722.783H950.208H951.344H976.319V697.82H979.725H980.86H983.131H987.672H989.942H996.754H997.889H999.024H1001.29H1002.43L1003.57 696.685V566.199H977.455Z" fill="#0C1019"/>
 
-      {/* Character */}
-      <g>
-        <rect x="22" y="10" width="8" height="14" fill="#E07C4C" />
-        <rect x="70" y="10" width="8" height="14" fill="#E07C4C" />
-        <rect x="18" y="24" width="64" height="4" fill="#E07C4C" />
-        <rect x="14" y="28" width="72" height="32" fill="#E07C4C" />
-        <rect className="mc-eye-l" x="38" y="34" width="8" height="10" fill="#000" />
-        <rect className="mc-eye-r" x="68" y="34" width="8" height="10" fill="#000" />
-        <rect x="2" y="36" width="12" height="8" fill="#E07C4C" />
-        <rect className="mc-right-arm" x="86" y="36" width="14" height="8" fill="#E07C4C" />
-        <rect x="24" y="60" width="12" height="12" fill="#E07C4C" />
-        <rect x="22" y="72" width="16" height="6" rx="1" fill="#1a1a1a" />
-        <rect x="64" y="60" width="12" height="12" fill="#E07C4C" />
-        <rect x="62" y="72" width="16" height="6" rx="1" fill="#1a1a1a" />
-      </g>
+        {/* Main body */}
+        <path d="M384.851 94.1774V142.968V300.687V305.225V309.764V330.188V333.592L407.557 334.727V493.58H897.987L899.122 492.445V355.151H873.011V152.045H848.035V95.312L846.9 94.1774H458.643H457.508H384.851Z" fill="#0C1019"/>
+        <path d="M412.098 331.323L434.803 333.592H435.938L437.073 461.809H868.47V411.884L845.765 410.749L844.63 205.375L823.06 204.24L821.925 203.105V123.679H412.098V331.323Z" fill="#BECFCB"/>
 
-      {/* Mini chart */}
-      <g>
-        <rect x="96" y="42" width="58" height="38" rx="4" fill="#1a1a18" opacity="0.9" />
-        <rect x="96" y="42" width="58" height="38" rx="4" stroke="#30302e" strokeWidth="1" fill="none" />
-        <line x1="100" y1="52" x2="150" y2="52" stroke="#30302e" strokeWidth="0.5" />
-        <line x1="100" y1="62" x2="150" y2="62" stroke="#30302e" strokeWidth="0.5" />
-        <line x1="100" y1="72" x2="150" y2="72" stroke="#30302e" strokeWidth="0.5" />
-        <rect className="mc-candle-1" x="103" y="60" width="4" height="14" rx="0.5" fill="#22c55e" />
-        <rect className="mc-candle-2" x="112" y="58" width="4" height="10" rx="0.5" fill="#ef4444" />
-        <rect className="mc-candle-3" x="121" y="54" width="4" height="18" rx="0.5" fill="#22c55e" />
-        <rect className="mc-candle-4" x="130" y="56" width="4" height="12" rx="0.5" fill="#22c55e" />
-        <path
-          className="mc-chart-line"
-          d="M100,68 L112,62 L124,66 L136,54 L148,58"
-          fill="none"
-          stroke="#E07C4C"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle className="mc-chart-dot" cx="148" cy="58" r="2.5" fill="#E07C4C" />
+        {/* Face details */}
+        <path d="M712.94 351.747L711.805 352.881V354.016V382.383V383.517H712.94H737.916H739.051V351.747H712.94Z" fill="#0C1019"/>
+        <path d="M564.222 351.747V357.42V364.228V366.497V368.767V383.517L590.333 384.652V410.749V411.884L591.468 413.019H711.805V384.652V383.517H591.468V352.881V351.747H564.222Z" fill="#0C1019"/>
+        <path d="M643.69 240.549V241.684V334.727H644.825H670.936H672.071L673.206 333.592V332.457V241.684V240.549H672.071H643.69Z" fill="#0C1019"/>
+        <path d="M702.723 184.951V280.263H708.399H709.534H733.375V184.951H717.481H716.346H708.399H704.993H702.723Z" fill="#0C1019"/>
+        <path d="M531.299 184.951V186.085L532.435 280.263H533.57H535.84H536.976H538.111H544.922H554.004H561.951V184.951H560.816H559.681H558.545H554.004H551.734H535.84H534.705H532.435H531.299Z" fill="#0C1019"/>
+
+        {/* Body frame */}
+        <path d="M303.113 43.1173V18.1547H873.011V38.5787V43.1173L899.122 44.252V69.2147H925.233V73.7533V91.908V93.0427V106.659V107.793V110.063V111.197V119.14V121.409V123.679V125.948V128.217V130.487V131.621V132.756V133.891V139.564V140.699V147.507V152.045V174.739V179.277V180.412V182.681L926.368 201.971L947.938 203.105H950.208L951.344 408.48H976.319V566.199H971.778H949.073L947.938 408.48H943.397H936.585H926.368H925.233L924.098 407.345V203.105H897.987V73.7533V70.3493H870.741V48.7907V46.5213L330.359 48.7907V52.1947V54.464V55.5987V64.676V65.8107V68.08V69.2147L307.654 70.3493L305.384 69.2147L304.248 70.3493V152.045L330.359 153.18V163.392V164.527V200.836V201.971V207.644V209.913V217.856V218.991V234.876V237.145V254.165V255.3V272.32V273.455V274.589V275.724V276.859V279.128V280.263V282.532V291.609V292.744V300.687V301.821V302.956V305.225V309.764V310.899V312.033V313.168V315.437V319.976V325.649V326.784V334.727V335.861V336.996V338.131V344.939V346.073V354.016V358.555V359.689V360.824V361.959V373.305V405.076V406.211V408.48V409.615L331.494 410.749H336.035H338.306H340.576H341.712H345.117H354.2H358.741V697.82H331.494V722.783H949.073V723.917V750.015H849.171L848.035 827.172V828.307H844.63H206.616H203.211V827.172L202.075 799.94H200.94H181.641H177.1H175.965L174.829 722.783H123.743L122.608 697.82H108.984H107.849H99.9024H98.7672L97.6319 670.588H72.6563H71.521L70.3858 645.625H44.2749V593.431H18.1641L17.0288 592.296V518.543V512.869V511.735V510.6V508.331V507.196V417.557V416.423V334.727H18.1641H44.2749V333.592V281.397L45.4102 280.263H70.3858L71.521 241.684V240.549V239.415V237.145V233.741V232.607V228.068V226.933H97.6319V177.008L98.7672 175.873L122.608 173.604V167.931V153.18L123.743 152.045H148.718V120.275H174.829V95.312L175.965 94.1773H181.641H187.317H199.805L202.075 93.0427V82.8307V70.3493L228.186 69.2147L229.321 68.08V44.252H230.457H231.592L303.113 43.1173Z" fill="#0C1019"/>
+
+        {/* Feet */}
+        <path d="M331.494 751.149V752.284L332.63 801.075H817.384H818.519H819.654L821.925 799.94V798.805V781.785V777.247V776.112V773.843V771.573V754.553V752.284V751.149H331.494Z" fill="#E9EEEB"/>
+
+        {/* Left eye */}
+        <g className="mc-eye-left">
+          <rect x="412" y="589" width="25" height="67" fill="#0C1019"/>
+          <rect x="497" y="589" width="25" height="67" fill="#0C1019"/>
+          <rect x="437" y="566" width="60" height="23" fill="#0C1019"/>
+          <rect x="437" y="656" width="60" height="23" fill="#0C1019"/>
+          <rect className="mc-screen-left" x="437" y="589" width="60" height="67" fill="#E07C4C" opacity="0.85"/>
+        </g>
+
+        {/* Right eye */}
+        <g className="mc-eye-right">
+          <rect x="842" y="589" width="25" height="67" fill="#0C1019"/>
+          <rect x="927" y="589" width="25" height="67" fill="#0C1019"/>
+          <rect x="867" y="566" width="60" height="23" fill="#0C1019"/>
+          <rect x="867" y="656" width="60" height="23" fill="#0C1019"/>
+          <rect className="mc-screen-right" x="867" y="589" width="60" height="67" fill="#E07C4C" opacity="0.85"/>
+        </g>
       </g>
     </svg>
   )
