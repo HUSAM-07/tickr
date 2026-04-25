@@ -45,61 +45,50 @@ export default function LandingPage() {
       <section className="px-6 pb-20 md:px-12 lg:px-20">
         <div className="mx-auto max-w-7xl">
           <div className="relative overflow-hidden rounded-3xl">
-            {/* Hero background image — centered, cover-cropped */}
+            {/* Hero banner — full image visible, never cropped */}
             <Image
-              src="/hero-banner.jpg"
+              src="/hero-banner.png"
               alt=""
-              fill
+              width={1920}
+              height={1080}
               priority
               sizes="(min-width: 1280px) 1216px, 100vw"
-              className="object-cover"
+              className="block w-full h-auto"
             />
 
-            {/* Legibility overlays — mobile darkens bottom (where text sits
-                when the layout stacks); desktop darkens the left half so
-                the right side of the image still reads clearly. */}
+            {/* Legibility overlays */}
             <div
               aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent md:hidden"
-            />
-            <div
-              aria-hidden
-              className="absolute inset-0 hidden bg-gradient-to-r from-black/75 via-black/45 to-transparent md:block"
+              className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"
             />
 
-            {/* Content */}
-            <div className="relative grid md:grid-cols-2">
-              <div className="flex min-h-[360px] flex-col justify-end p-10 md:min-h-[440px] md:p-14 lg:min-h-[480px] lg:p-20">
-                <h2 className="font-display text-4xl leading-[1.10] text-white md:text-5xl lg:text-6xl">
-                  Chat.
-                  <br />
-                  Trade.
-                </h2>
-                <p className="mt-6 max-w-md font-body text-base leading-[1.60] text-white/80">
-                  Live candlestick charts, technical analysis, and binary
-                  options trading — all happening inside the conversation.
-                  The AI is your analyst. The chat is your terminal.
-                </p>
-                <div className="mt-8 flex flex-wrap items-center gap-3">
-                  <Link
-                    href="/chat"
-                    className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 font-heading text-sm font-medium text-black transition-opacity hover:opacity-90"
-                  >
-                    Start trading
-                    <span>&rarr;</span>
-                  </Link>
-                  <Link
-                    href="/chat/ideas"
-                    className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-2.5 font-heading text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-                  >
-                    Browse ideas
-                  </Link>
-                </div>
+            {/* Content — positioned over the bottom of the image */}
+            <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-14 lg:p-20">
+              <h2 className="font-display text-3xl leading-[1.10] text-white sm:text-4xl md:text-5xl lg:text-6xl">
+                Chat.
+                <br />
+                Trade.
+              </h2>
+              <p className="mt-4 max-w-lg font-body text-sm leading-[1.60] text-white/80 sm:text-base md:mt-6">
+                Live candlestick charts, technical analysis, and binary
+                options trading — all happening inside the conversation.
+                The AI is your analyst. The chat is your terminal.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3 md:mt-8">
+                <Link
+                  href="/chat"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 font-heading text-sm font-medium text-black transition-opacity hover:opacity-90"
+                >
+                  Start trading
+                  <span>&rarr;</span>
+                </Link>
+                <Link
+                  href="/chat/ideas"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-2.5 font-heading text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                >
+                  Browse ideas
+                </Link>
               </div>
-
-              {/* Right column is intentionally empty — the image shows
-                  through on desktop. Reserves layout space only. */}
-              <div className="hidden md:block" />
             </div>
           </div>
         </div>
