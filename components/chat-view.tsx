@@ -9,8 +9,8 @@ import {
   TrendingUp,
   Zap,
   BarChart3,
-  Briefcase,
-  Trophy,
+  BookOpen,
+  Newspaper,
   type LucideIcon,
 } from "lucide-react"
 import { MessageParts } from "@/components/message-parts"
@@ -25,32 +25,32 @@ const suggestedPrompts: { icon: LucideIcon; label: string; prompt: string }[] = 
   {
     icon: CandlestickChart,
     label: "Chart V75",
-    prompt: "Show me a live chart of Volatility 75 Index",
+    prompt: "Show me a live chart of Volatility 75 Index with Bollinger Bands",
   },
   {
     icon: TrendingUp,
-    label: "Analyze EUR/USD",
-    prompt: "Analyze EUR/USD with RSI and Bollinger Bands",
+    label: "Full analysis",
+    prompt: "Give me a full technical analysis of EUR/USD with all indicators and explain what the signals mean",
+  },
+  {
+    icon: BookOpen,
+    label: "Learn RSI",
+    prompt: "Explain how RSI works and show me an example on Volatility 100 Index",
+  },
+  {
+    icon: Newspaper,
+    label: "Market news",
+    prompt: "What's happening in the crypto market today? Any major news affecting Bitcoin?",
   },
   {
     icon: Zap,
-    label: "Get a signal",
-    prompt: "Give me a trading signal on Volatility 100 Index",
+    label: "Signal + reasoning",
+    prompt: "Give me a trading signal on Volatility 75 with detailed reasoning for each indicator",
   },
   {
     icon: BarChart3,
-    label: "Compare markets",
-    prompt: "Compare Volatility 25, 50, 75, and 100 indices in a table",
-  },
-  {
-    icon: Briefcase,
-    label: "Portfolio",
-    prompt: "Show my portfolio and trading performance",
-  },
-  {
-    icon: Trophy,
-    label: "Leaderboard",
-    prompt: "Show the trading leaderboard",
+    label: "What can I trade?",
+    prompt: "What instruments are available on this platform? Show me all markets in a table",
   },
 ]
 
