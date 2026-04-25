@@ -35,10 +35,11 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
   const smaSeriesRef = useRef<ISeriesApi<"Line", Time> | null>(null)
   const { connectionState, connect } = useTradingContext()
 
-  const { candles, latestCandle, isLoading, error } = useChartData(
-    connectionState === "disconnected" ? null : symbol,
-    interval
-  )
+  const { candles, latestCandle, isLoading, error, marketStatus, lastTickAt } =
+    useChartData(
+      connectionState === "disconnected" ? null : symbol,
+      interval
+    )
 
   // Auto-connect if not connected
   useEffect(() => {
@@ -190,6 +191,18 @@ export function WidgetTradingChart({ data }: { data: TradingChartData }) {
             <WifiOff className="h-3 w-3 text-red-500" />
           ) : (
             <Wifi className="h-3 w-3 text-green-500" />
+          )}
+          {(marketStatus === "closed" || marketStatus === "suspended") && (
+            <span
+              className="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 font-heading text-[10px] uppercase tracking-wide text-amber-500"
+              title={
+                lastTickAt
+                  ? `Last price as of ${new Date(lastTickAt * 1000).toLocaleString()}`
+                  : "Market is not currently open"
+              }
+            >
+              {marketStatus === "suspended" ? "Suspended" : "Market Closed"}
+            </span>
           )}
         </div>
 

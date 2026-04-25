@@ -14,6 +14,16 @@ type ChartDataState = {
   isLoading: boolean
   error: string | null
   latestCandle: CandleData | null
+  marketStatus: "open" | "closed" | "suspended" | "unknown"
+  lastTickAt: number | null
+}
+
+type ActiveSymbolsResponse = {
+  active_symbols?: Array<{
+    symbol: string
+    exchange_is_open?: number
+    is_trading_suspended?: number
+  }>
 }
 
 /**
@@ -29,6 +39,9 @@ export function useChartData(
   const [latestCandle, setLatestCandle] = useState<CandleData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [marketStatus, setMarketStatus] =
+    useState<"open" | "closed" | "suspended" | "unknown">("unknown")
+  const [lastTickAt, setLastTickAt] = useState<number | null>(null)
   const unsubRef = useRef<(() => void) | null>(null)
   const currentCandleRef = useRef<CandleData | null>(null)
   const granularityRef = useRef<number>(60)
@@ -72,7 +85,25 @@ export function useChartData(
         const last = mapped[mapped.length - 1]
         currentCandleRef.current = { ...last }
         setLatestCandle({ ...last })
+        setLastTickAt(last.time)
       }
+
+      // Fetch market status once per symbol/interval change.
+      // Best-effort: a failure just leaves status as "unknown" and we rely on
+      // the live tick stream to flip it to "open" if data flows.
+      client
+        .getActiveSymbols()
+        .then((resp) => {
+          const list = (resp as ActiveSymbolsResponse).active_symbols ?? []
+          const match = list.find((s) => s.symbol === symbol)
+          if (!match) return
+          if (match.is_trading_suspended) setMarketStatus("suspended")
+          else if (!match.exchange_is_open) setMarketStatus("closed")
+          else setMarketStatus("open")
+        })
+        .catch(() => {
+          /* leave as unknown */
+        })
 
       // Subscribe to live ticks — we aggregate them into candles client-side
       const { unsubscribe } = client.subscribeTicks(
@@ -107,6 +138,10 @@ export function useChartData(
             current.close = tickPrice
             setLatestCandle({ ...current })
           }
+          setLastTickAt(tickEpoch)
+          // Receiving a live tick is proof the market is open even if
+          // active_symbols said otherwise (or hadn't responded yet).
+          setMarketStatus("open")
         }
       )
       unsubRef.current = unsubscribe
@@ -130,5 +165,5 @@ export function useChartData(
     }
   }, [fetchAndSubscribe])
 
-  return { candles, isLoading, error, latestCandle }
+  return { candles, isLoading, error, latestCandle, marketStatus, lastTickAt }
 }
