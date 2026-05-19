@@ -3,8 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import {
   Send,
-  Plus,
-  AudioLines,
   CandlestickChart,
   TrendingUp,
   Zap,
@@ -272,13 +270,7 @@ export function ChatView({
           rows={1}
           className="w-full resize-none overflow-hidden bg-transparent px-4 pt-4 pb-2 font-body text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none md:px-5"
         />
-        <div className="flex items-center justify-between px-3 pb-3">
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <Plus className="h-5 w-5" />
-          </button>
+        <div className="flex items-center justify-end px-3 pb-3">
           <div className="flex items-center gap-2">
             <ModelSelector selected={selectedModel} onSelect={setSelectedModel} />
             {input.trim() && !isStreaming ? (
@@ -292,14 +284,7 @@ export function ChatView({
               <div className="flex h-9 w-9 items-center justify-center">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
               </div>
-            ) : (
-              <button
-                type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                <AudioLines className="h-5 w-5" />
-              </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
