@@ -21,6 +21,8 @@
 # misc
 .DS_Store
 *.pem
+/.codegraph/
+/.cursor/rules/codegraph.mdc
 
 # debug
 npm-debug.log*
@@ -31,6 +33,7 @@ pnpm-debug.log*
 # env files
 .env
 .env.*
+!.env.example
 .env*.local
 
 # typescript

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import {
   Plus,
@@ -11,42 +11,25 @@ import {
   Star,
   Pencil,
   Trash2,
+  LogOut,
+  CircleUserRound,
 } from "lucide-react"
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 import { MascotCharacter } from "@/components/mascot-icon"
 import type { ConversationSummary } from "@/lib/types"
-
-// ── Starred storage (localStorage until auth is added) ──
-
-const STARRED_KEY = "tickr_starred_conversations"
-
-function getStarredIds(): Set<string> {
-  if (typeof window === "undefined") return new Set()
-  try {
-    const raw = localStorage.getItem(STARRED_KEY)
-    return raw ? new Set(JSON.parse(raw) as string[]) : new Set()
-  } catch {
-    return new Set()
-  }
-}
-
-function setStarredIds(ids: Set<string>) {
-  localStorage.setItem(STARRED_KEY, JSON.stringify([...ids]))
-}
 
 // ── Grouping ──
 
 type GroupedConversations = { label: string; items: ConversationSummary[] }
 
 function groupConversations(
-  conversations: ConversationSummary[],
-  starredIds: Set<string>
+  conversations: ConversationSummary[]
 ): GroupedConversations[] {
   const starred: ConversationSummary[] = []
   const rest: ConversationSummary[] = []
 
   for (const c of conversations) {
-    if (starredIds.has(c.id)) {
+    if (c.is_starred) {
       starred.push(c)
     } else {
       rest.push(c)
@@ -108,7 +91,8 @@ function ConversationMenu({
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose()
+      if (menuRef.current && !menuRef.current.contains(e.target as Node))
+        onClose()
     }
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose()
@@ -124,25 +108,39 @@ function ConversationMenu({
   return (
     <div
       ref={menuRef}
-      className="absolute right-0 top-full z-50 mt-1 w-44 overflow-hidden rounded-xl border border-border bg-card shadow-[rgba(0,0,0,0.12)_0px_4px_16px]"
+      className="absolute top-full right-0 z-50 mt-1 w-44 overflow-hidden rounded-xl border border-border bg-card shadow-[rgba(0,0,0,0.12)_0px_4px_16px]"
     >
       <div className="py-1">
         <button
-          onClick={(e) => { e.stopPropagation(); onToggleStar(conversationId); onClose() }}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleStar(conversationId)
+            onClose()
+          }}
           className="flex w-full items-center gap-3 px-3 py-2 text-left font-heading text-sm text-foreground transition-colors hover:bg-secondary"
         >
-          <Star className={`h-4 w-4 ${isStarred ? "fill-amber-400 text-amber-400" : ""}`} />
+          <Star
+            className={`h-4 w-4 ${isStarred ? "fill-amber-400 text-amber-400" : ""}`}
+          />
           {isStarred ? "Unstar" : "Star"}
         </button>
         <button
-          onClick={(e) => { e.stopPropagation(); onRename(conversationId); onClose() }}
+          onClick={(e) => {
+            e.stopPropagation()
+            onRename(conversationId)
+            onClose()
+          }}
           className="flex w-full items-center gap-3 px-3 py-2 text-left font-heading text-sm text-foreground transition-colors hover:bg-secondary"
         >
           <Pencil className="h-4 w-4" />
           Rename
         </button>
         <button
-          onClick={(e) => { e.stopPropagation(); onDelete(conversationId); onClose() }}
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(conversationId)
+            onClose()
+          }}
           className="flex w-full items-center gap-3 border-t border-border px-3 py-2 text-left font-heading text-sm text-red-500 transition-colors hover:bg-secondary dark:text-red-400"
         >
           <Trash2 className="h-4 w-4" />
@@ -163,9 +161,12 @@ export function ChatSidebar({
   onNewChat,
   onDelete,
   onRename,
+  onToggleStar,
   onClose,
   onSearchOpen,
   onIdeasOpen,
+  accountEmail,
+  onSignOut,
 }: {
   conversations: ConversationSummary[]
   activeId: string | null
@@ -174,27 +175,19 @@ export function ChatSidebar({
   onNewChat: () => void
   onDelete: (id: string) => void
   onRename: (id: string) => void
+  onToggleStar: (id: string, isStarred: boolean) => void
   onClose: () => void
   onSearchOpen: () => void
   onIdeasOpen: () => void
+  accountEmail: string | null
+  onSignOut: () => void
 }) {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
-  const [starredIds, setStarredIdsState] = useState<Set<string>>(() => getStarredIds())
 
-  const toggleStar = useCallback((id: string) => {
-    setStarredIdsState((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      setStarredIds(next)
-      return next
-    })
-  }, [])
-
-  const groups = groupConversations(conversations, starredIds)
+  const groups = groupConversations(conversations)
 
   return (
-    <div className="flex h-full w-full lg:w-[300px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+    <div className="flex h-full w-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:w-[300px]">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-5 pb-2 lg:px-4 lg:pt-4">
         <Link
@@ -212,7 +205,7 @@ export function ChatSidebar({
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-2 space-y-0.5 lg:px-3 lg:py-1">
+      <div className="space-y-0.5 px-4 py-2 lg:px-3 lg:py-1">
         <button
           onClick={onNewChat}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-heading text-[15px] text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent lg:gap-2 lg:py-2 lg:text-sm"
@@ -241,7 +234,10 @@ export function ChatSidebar({
         {isLoading ? (
           <div className="space-y-2 px-3 pt-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-8 animate-pulse rounded-lg bg-sidebar-accent/50" />
+              <div
+                key={i}
+                className="h-8 animate-pulse rounded-lg bg-sidebar-accent/50"
+              />
             ))}
           </div>
         ) : groups.length === 0 ? (
@@ -254,17 +250,19 @@ export function ChatSidebar({
         ) : (
           groups.map((group) => (
             <div key={group.label} className="mt-4 first:mt-2">
-              <p className={`mb-1 px-3 font-heading text-[11px] font-medium ${
-                group.label === "Starred"
-                  ? "text-amber-500 dark:text-amber-400"
-                  : "text-sidebar-foreground/40"
-              }`}>
+              <p
+                className={`mb-1 px-3 font-heading text-[11px] font-medium ${
+                  group.label === "Starred"
+                    ? "text-amber-500 dark:text-amber-400"
+                    : "text-sidebar-foreground/40"
+                }`}
+              >
                 {group.label}
               </p>
               {group.items.map((conversation) => {
                 const isActive = conversation.id === activeId
                 const isMenuOpen = menuOpenId === conversation.id
-                const isStarred = starredIds.has(conversation.id)
+                const isStarred = conversation.is_starred
                 return (
                   <div key={conversation.id} className="group relative">
                     <button
@@ -278,7 +276,9 @@ export function ChatSidebar({
                       {isStarred && group.label === "Starred" && (
                         <Star className="h-3 w-3 shrink-0 fill-amber-400 text-amber-400" />
                       )}
-                      <span className="truncate pr-6">{conversation.title}</span>
+                      <span className="truncate pr-6">
+                        {conversation.title}
+                      </span>
                     </button>
 
                     <button
@@ -286,8 +286,10 @@ export function ChatSidebar({
                         e.stopPropagation()
                         setMenuOpenId(isMenuOpen ? null : conversation.id)
                       }}
-                      className={`absolute right-1.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-md transition-opacity text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent ${
-                        isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      className={`absolute top-1/2 right-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-sidebar-foreground/40 transition-opacity hover:bg-sidebar-accent hover:text-sidebar-foreground ${
+                        isMenuOpen
+                          ? "opacity-100"
+                          : "opacity-0 group-hover:opacity-100"
                       }`}
                     >
                       <MoreHorizontal className="h-4 w-4" />
@@ -297,7 +299,7 @@ export function ChatSidebar({
                       <ConversationMenu
                         conversationId={conversation.id}
                         isStarred={isStarred}
-                        onToggleStar={toggleStar}
+                        onToggleStar={(id) => onToggleStar(id, !isStarred)}
                         onRename={onRename}
                         onDelete={onDelete}
                         onClose={() => setMenuOpenId(null)}
@@ -312,8 +314,23 @@ export function ChatSidebar({
       </div>
 
       {/* Footer */}
-      <div className="border-t border-sidebar-border px-5 py-4 lg:px-4 lg:py-3">
-        <AnimatedThemeToggler className="flex h-9 w-9 items-center justify-center rounded-lg text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground lg:h-8 lg:w-8 [&>svg]:h-5 [&>svg]:w-5 lg:[&>svg]:h-4 lg:[&>svg]:w-4" />
+      <div className="border-t border-sidebar-border px-4 py-3">
+        <div className="flex items-center gap-2">
+          <CircleUserRound className="h-5 w-5 shrink-0 text-sidebar-foreground/55" />
+          <span className="min-w-0 flex-1 truncate font-heading text-xs text-sidebar-foreground/70">
+            {accountEmail ?? "Signed in"}
+          </span>
+          <AnimatedThemeToggler className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground [&>svg]:h-4 [&>svg]:w-4" />
+          <button
+            type="button"
+            onClick={onSignOut}
+            aria-label="Sign out"
+            title="Sign out"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   )

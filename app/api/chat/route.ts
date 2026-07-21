@@ -3,6 +3,7 @@ import { allTools, SYSTEM_PROMPT } from "@/lib/tools"
 import type { WidgetType } from "@/lib/types"
 import { SMA, RSI, EMA, BollingerBands, MACD, ATR } from "technicalindicators"
 import { INTERVAL_MAP } from "@/lib/deriv/constants"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 
 const openrouter = new OpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -33,9 +34,6 @@ const WIDGET_NAMES = new Set([
   "get_signals",
   "show_leaderboard",
 ])
-
-// analyze_market is a non-widget tool — it returns data to the LLM
-const ANALYSIS_TOOL_NAMES = new Set(["analyze_market", "web_search"])
 
 /** Map tool function names to widget type identifiers */
 const TOOL_TO_WIDGET: Record<string, WidgetType> = {
@@ -75,12 +73,12 @@ type Candle = {
 
 /** Minimum candle counts required for each indicator (period + warmup headroom). */
 const MIN_CANDLES: Record<string, number> = {
-  sma: 50,       // SMA-50 needs 50 closes
-  ema: 20,       // EMA-20
-  rsi: 15,       // RSI-14 + 1
-  macd: 35,      // slowPeriod 26 + signalPeriod 9
+  sma: 50, // SMA-50 needs 50 closes
+  ema: 20, // EMA-20
+  rsi: 15, // RSI-14 + 1
+  macd: 35, // slowPeriod 26 + signalPeriod 9
   bollinger: 20, // period 20
-  atr: 15,       // period 14 + 1
+  atr: 15, // period 14 + 1
 }
 
 /** Timeframe fallback cascade — if a timeframe returns too few candles, try the next one up. */
@@ -151,37 +149,39 @@ async function fetchCandles(
   granularity: number,
   count: number
 ): Promise<Candle[]> {
-  const data = await new Promise<Record<string, unknown>>(async (resolve, reject) => {
-    const { default: WS } = await import("ws")
-    const ws = new WS("wss://api.derivws.com/trading/v1/options/ws/public")
-    const timeout = setTimeout(() => {
-      ws.close()
-      reject(new Error("Deriv WS timeout"))
-    }, 15000)
+  const data = await new Promise<Record<string, unknown>>(
+    async (resolve, reject) => {
+      const { default: WS } = await import("ws")
+      const ws = new WS("wss://api.derivws.com/trading/v1/options/ws/public")
+      const timeout = setTimeout(() => {
+        ws.close()
+        reject(new Error("Deriv WS timeout"))
+      }, 15000)
 
-    ws.on("open", () => {
-      ws.send(
-        JSON.stringify({
-          ticks_history: symbol,
-          style: "candles",
-          granularity,
-          count,
-          end: "latest",
-          req_id: 1,
-        })
-      )
-    })
-    ws.on("message", (msg: Buffer) => {
-      clearTimeout(timeout)
-      const parsed = JSON.parse(msg.toString())
-      ws.close()
-      resolve(parsed)
-    })
-    ws.on("error", (err: Error) => {
-      clearTimeout(timeout)
-      reject(err)
-    })
-  })
+      ws.on("open", () => {
+        ws.send(
+          JSON.stringify({
+            ticks_history: symbol,
+            style: "candles",
+            granularity,
+            count,
+            end: "latest",
+            req_id: 1,
+          })
+        )
+      })
+      ws.on("message", (msg: Buffer) => {
+        clearTimeout(timeout)
+        const parsed = JSON.parse(msg.toString())
+        ws.close()
+        resolve(parsed)
+      })
+      ws.on("error", (err: Error) => {
+        clearTimeout(timeout)
+        reject(err)
+      })
+    }
+  )
 
   if ((data as { error?: { message: string } }).error) {
     throw new Error(
@@ -219,9 +219,9 @@ async function computeMarketAnalysis(
   // Try requested timeframe first, then cascade to higher granularities if data is too thin.
   const tfsToTry = [
     requestedTf,
-    ...FALLBACK_ORDER.slice(
-      FALLBACK_ORDER.indexOf(requestedTf) + 1
-    ).filter((tf) => INTERVAL_MAP[tf]),
+    ...FALLBACK_ORDER.slice(FALLBACK_ORDER.indexOf(requestedTf) + 1).filter(
+      (tf) => INTERVAL_MAP[tf]
+    ),
   ]
 
   let candles: Candle[] = []
@@ -365,8 +365,9 @@ async function computeMarketAnalysis(
       result.macd = {
         macd: latest.MACD ? Number(latest.MACD.toFixed(5)) : null,
         signal: latest.signal ? Number(latest.signal.toFixed(5)) : null,
-        histogram:
-          latest.histogram ? Number(latest.histogram.toFixed(5)) : null,
+        histogram: latest.histogram
+          ? Number(latest.histogram.toFixed(5))
+          : null,
       }
     } else {
       result.macd = null
@@ -412,7 +413,9 @@ async function computeMarketAnalysis(
   // Derive trend direction from SMA crossover
   if (result.sma_20 != null && result.sma_50 != null) {
     result.trend =
-      (result.sma_20 as number) > (result.sma_50 as number) ? "bullish" : "bearish"
+      (result.sma_20 as number) > (result.sma_50 as number)
+        ? "bullish"
+        : "bearish"
   } else {
     result.trend = priceChange > 0 ? "bullish" : "bearish"
   }
@@ -421,7 +424,8 @@ async function computeMarketAnalysis(
   const recentRange = highs.slice(-20).map((h, i) => h - lows.slice(-20)[i])
   const avgRange = recentRange.reduce((a, b) => a + b, 0) / recentRange.length
   const rangeRatio = avgRange / currentPrice
-  result.volatility = rangeRatio > 0.01 ? "high" : rangeRatio > 0.003 ? "medium" : "low"
+  result.volatility =
+    rangeRatio > 0.01 ? "high" : rangeRatio > 0.003 ? "medium" : "low"
 
   return result
 }
@@ -459,22 +463,36 @@ async function performWebSearch(
   // Extract and condense results for the LLM context window
   const webResults = (data.web?.results ?? [])
     .slice(0, count)
-    .map((r: { title: string; url: string; description: string; age?: string }) => ({
-      title: r.title,
-      url: r.url,
-      snippet: r.description,
-      age: r.age ?? null,
-    }))
+    .map(
+      (r: {
+        title: string
+        url: string
+        description: string
+        age?: string
+      }) => ({
+        title: r.title,
+        url: r.url,
+        snippet: r.description,
+        age: r.age ?? null,
+      })
+    )
 
   // Include news results if present
   const newsResults = (data.news?.results ?? [])
     .slice(0, 3)
-    .map((r: { title: string; url: string; description: string; age?: string }) => ({
-      title: r.title,
-      url: r.url,
-      snippet: r.description,
-      age: r.age ?? null,
-    }))
+    .map(
+      (r: {
+        title: string
+        url: string
+        description: string
+        age?: string
+      }) => ({
+        title: r.title,
+        url: r.url,
+        snippet: r.description,
+        age: r.age ?? null,
+      })
+    )
 
   return {
     query,
@@ -485,14 +503,33 @@ async function performWebSearch(
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as {
-    messages?: unknown
-    model?: string
+  const supabase = await createServerSupabaseClient()
+  const { data: claimsData, error: claimsError } =
+    await supabase.auth.getClaims()
+
+  if (claimsError || !claimsData?.claims.sub) {
+    return new Response("Unauthorized", { status: 401 })
   }
 
-  const messages = body.messages as
-    | { role: "user" | "assistant"; content: string }[]
-    | undefined
+  let parsedBody: unknown
+
+  try {
+    parsedBody = await request.json()
+  } catch {
+    return new Response("Invalid JSON", { status: 400 })
+  }
+
+  if (
+    !parsedBody ||
+    typeof parsedBody !== "object" ||
+    Array.isArray(parsedBody)
+  ) {
+    return new Response("Invalid request body", { status: 400 })
+  }
+
+  const body = parsedBody as { messages?: unknown; model?: unknown }
+
+  const messages = body.messages
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return new Response("Invalid messages", { status: 400 })
@@ -504,27 +541,55 @@ export async function POST(request: Request) {
 
   for (const msg of messages) {
     if (
+      !msg ||
+      typeof msg !== "object" ||
+      Array.isArray(msg) ||
+      !("role" in msg) ||
+      (msg.role !== "user" && msg.role !== "assistant") ||
+      !("content" in msg) ||
       typeof msg.content !== "string" ||
+      msg.content.length === 0 ||
       msg.content.length > MAX_CONTENT_LENGTH
     ) {
-      return new Response("Invalid message content", { status: 400 })
+      return new Response("Invalid message", { status: 400 })
     }
   }
 
   const modelId =
-    body.model && ALLOWED_MODELS.has(body.model)
+    typeof body.model === "string" && ALLOWED_MODELS.has(body.model)
       ? body.model
       : "minimax/minimax-m2.1"
+
+  const { data: rateLimitAllowed, error: rateLimitError } = await supabase.rpc(
+    "consume_api_rate_limit",
+    { rate_scope: "chat" }
+  )
+
+  if (rateLimitError) {
+    console.error("[chat/route] Rate-limit check failed:", rateLimitError)
+    return new Response("Service temporarily unavailable", { status: 503 })
+  }
+
+  if (rateLimitAllowed !== true) {
+    return new Response("Rate limit exceeded", {
+      status: 429,
+      headers: { "Retry-After": "60" },
+    })
+  }
 
   // Build conversation with system prompt
   const conversationMessages: Array<{
     role: string
     content?: string
-    toolCalls?: Array<{ id: string; type: string; function: { name: string; arguments: string } }>
+    toolCalls?: Array<{
+      id: string
+      type: string
+      function: { name: string; arguments: string }
+    }>
     toolCallId?: string
   }> = [
     { role: "system", content: SYSTEM_PROMPT },
-    ...messages,
+    ...(messages as { role: "user" | "assistant"; content: string }[]),
   ]
 
   const readable = new ReadableStream({
@@ -557,7 +622,9 @@ export async function POST(request: Request) {
 
             // Some providers return error in the chunk itself
             if ((chunk as Record<string, unknown>).error) {
-              const err = (chunk as Record<string, unknown>).error as { message?: string }
+              const err = (chunk as Record<string, unknown>).error as {
+                message?: string
+              }
               throw new Error(err?.message ?? "Model returned an error")
             }
 
@@ -600,7 +667,9 @@ export async function POST(request: Request) {
             }
           }
 
-          console.log(`[chat/route] Stream done: ${chunkCount} chunks, finishReason=${finishReason}, content=${accumulatedContent.length} chars, toolCalls=${toolCalls.size}`)
+          console.log(
+            `[chat/route] Stream done: ${chunkCount} chunks, finishReason=${finishReason}, content=${accumulatedContent.length} chars, toolCalls=${toolCalls.size}`
+          )
 
           // If model finished with tool calls, process them and loop
           if (finishReason === "tool_calls" && toolCalls.size > 0) {
@@ -663,11 +732,16 @@ export async function POST(request: Request) {
                 try {
                   const args = JSON.parse(tc.function.arguments)
                   toolResult = JSON.stringify(
-                    await computeMarketAnalysis(args.symbol, args.timeframe, args.indicators)
+                    await computeMarketAnalysis(
+                      args.symbol,
+                      args.timeframe,
+                      args.indicators
+                    )
                   )
                 } catch (err) {
                   toolResult = JSON.stringify({
-                    error: err instanceof Error ? err.message : "Analysis failed",
+                    error:
+                      err instanceof Error ? err.message : "Analysis failed",
                   })
                 }
               } else if (tc.function.name === "web_search") {
@@ -678,7 +752,8 @@ export async function POST(request: Request) {
                   )
                 } catch (err) {
                   toolResult = JSON.stringify({
-                    error: err instanceof Error ? err.message : "Web search failed",
+                    error:
+                      err instanceof Error ? err.message : "Web search failed",
                   })
                 }
               } else {
