@@ -1,12 +1,42 @@
 import { NextResponse } from "next/server"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 
 const DERIV_REST_URL = "https://api.derivws.com"
-const DERIV_APP_ID = process.env.NEXT_PUBLIC_DERIV_APP_ID || "32Z5qZ94Sx9Ev8p73z3eY"
+const DERIV_APP_ID =
+  process.env.NEXT_PUBLIC_DERIV_APP_ID || "32Z5qZ94Sx9Ev8p73z3eY"
 
 /** Cache the demo account ID — it doesn't change between requests */
 let cachedDemoAccountId: string | null = null
 
 export async function GET() {
+  const supabase = await createServerSupabaseClient()
+  const { data: claimsData, error: claimsError } =
+    await supabase.auth.getClaims()
+
+  if (claimsError || !claimsData?.claims.sub) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { data: rateLimitAllowed, error: rateLimitError } = await supabase.rpc(
+    "consume_api_rate_limit",
+    { rate_scope: "deriv-auth" }
+  )
+
+  if (rateLimitError) {
+    console.error("[deriv-auth] rate-limit check failed:", rateLimitError)
+    return NextResponse.json(
+      { error: "Service temporarily unavailable" },
+      { status: 503 }
+    )
+  }
+
+  if (rateLimitAllowed !== true) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded" },
+      { status: 429, headers: { "Retry-After": "60" } }
+    )
+  }
+
   const pat = process.env.DERIV_PAT
   if (!pat) {
     return NextResponse.json(
@@ -30,7 +60,11 @@ export async function GET() {
 
       if (!accountsRes.ok) {
         const text = await accountsRes.text()
-        console.error("[deriv-auth] accounts fetch failed:", accountsRes.status, text)
+        console.error(
+          "[deriv-auth] accounts fetch failed:",
+          accountsRes.status,
+          text
+        )
         return NextResponse.json(
           { error: "Failed to fetch Deriv accounts" },
           { status: 502 }
@@ -38,7 +72,11 @@ export async function GET() {
       }
 
       const accountsData = (await accountsRes.json()) as {
-        data: Array<{ account_id: string; account_type: string; status: string }>
+        data: Array<{
+          account_id: string
+          account_type: string
+          status: string
+        }>
       }
 
       const demoAccount = accountsData.data?.find(

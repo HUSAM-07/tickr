@@ -1,12 +1,8 @@
-import { createClient } from "@supabase/supabase-js"
+import { createBrowserClient } from "@supabase/ssr"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(
-  supabaseUrl || "https://placeholder.supabase.co",
-  supabaseKey || "placeholder",
-  {
-    db: { schema: "trading_game" },
-  }
-)
+export const supabase = createBrowserClient(supabaseUrl, supabaseKey, {
+  db: { schema: "trading_game" },
+})

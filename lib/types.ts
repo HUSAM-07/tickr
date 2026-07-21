@@ -141,7 +141,9 @@ export type Message = {
 
 export type Conversation = {
   id: string
+  user_id: string
   title: string
+  is_starred: boolean
   created_at: string
   updated_at: string
   messages: Message[]
@@ -150,6 +152,7 @@ export type Conversation = {
 export type ConversationSummary = {
   id: string
   title: string
+  is_starred: boolean
   created_at: string
   updated_at: string
 }

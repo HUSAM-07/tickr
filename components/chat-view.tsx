@@ -19,38 +19,45 @@ import { useConversationsContext } from "@/hooks/conversations-context"
 import { DEFAULT_MODEL, type ModelConfig } from "@/lib/models"
 import type { Message, MessagePart, SSEEvent } from "@/lib/types"
 
-const suggestedPrompts: { icon: LucideIcon; label: string; prompt: string }[] = [
-  {
-    icon: CandlestickChart,
-    label: "Chart V75",
-    prompt: "Show me a live chart of Volatility 75 Index with Bollinger Bands",
-  },
-  {
-    icon: TrendingUp,
-    label: "Full analysis",
-    prompt: "Give me a full technical analysis of EUR/USD with all indicators and explain what the signals mean",
-  },
-  {
-    icon: BookOpen,
-    label: "Learn RSI",
-    prompt: "Explain how RSI works and show me an example on Volatility 100 Index",
-  },
-  {
-    icon: Newspaper,
-    label: "Market news",
-    prompt: "What's happening in the crypto market today? Any major news affecting Bitcoin?",
-  },
-  {
-    icon: Zap,
-    label: "Signal + reasoning",
-    prompt: "Give me a trading signal on Volatility 75 with detailed reasoning for each indicator",
-  },
-  {
-    icon: BarChart3,
-    label: "What can I trade?",
-    prompt: "What instruments are available on this platform? Show me all markets in a table",
-  },
-]
+const suggestedPrompts: { icon: LucideIcon; label: string; prompt: string }[] =
+  [
+    {
+      icon: CandlestickChart,
+      label: "Chart V75",
+      prompt:
+        "Show me a live chart of Volatility 75 Index with Bollinger Bands",
+    },
+    {
+      icon: TrendingUp,
+      label: "Full analysis",
+      prompt:
+        "Give me a full technical analysis of EUR/USD with all indicators and explain what the signals mean",
+    },
+    {
+      icon: BookOpen,
+      label: "Learn RSI",
+      prompt:
+        "Explain how RSI works and show me an example on Volatility 100 Index",
+    },
+    {
+      icon: Newspaper,
+      label: "Market news",
+      prompt:
+        "What's happening in the crypto market today? Any major news affecting Bitcoin?",
+    },
+    {
+      icon: Zap,
+      label: "Signal + reasoning",
+      prompt:
+        "Give me a trading signal on Volatility 75 with detailed reasoning for each indicator",
+    },
+    {
+      icon: BarChart3,
+      label: "What can I trade?",
+      prompt:
+        "What instruments are available on this platform? Show me all markets in a table",
+    },
+  ]
 
 export function ChatView({
   conversationId,
@@ -66,6 +73,7 @@ export function ChatView({
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState("")
   const [isStreaming, setIsStreaming] = useState(false)
+  const [persistenceError, setPersistenceError] = useState<string | null>(null)
   const [selectedModel, setSelectedModel] = useState<ModelConfig>(DEFAULT_MODEL)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -77,18 +85,28 @@ export function ChatView({
 
   const initialPromptUsed = useRef(false)
 
-  useEffect(() => { messagesRef.current = messages }, [messages])
-  useEffect(() => { convIdRef.current = conversationId }, [conversationId])
-  useEffect(() => { isStreamingRef.current = isStreaming }, [isStreaming])
-  useEffect(() => { selectedModelRef.current = selectedModel }, [selectedModel])
+  useEffect(() => {
+    messagesRef.current = messages
+  }, [messages])
+  useEffect(() => {
+    convIdRef.current = conversationId
+  }, [conversationId])
+  useEffect(() => {
+    isStreamingRef.current = isStreaming
+  }, [isStreaming])
+  useEffect(() => {
+    selectedModelRef.current = selectedModel
+  }, [selectedModel])
 
   const updateAssistantParts = useCallback(
     (assistantId: string, updater: (parts: MessagePart[]) => MessagePart[]) => {
-      setMessages((prev) =>
-        prev.map((m) =>
+      setMessages((prev) => {
+        const next = prev.map((m) =>
           m.id === assistantId ? { ...m, parts: updater(m.parts) } : m
         )
-      )
+        messagesRef.current = next
+        return next
+      })
     },
     []
   )
@@ -108,24 +126,33 @@ export function ChatView({
       }
 
       const updatedMessages = [...messagesRef.current, userMessage]
+      messagesRef.current = updatedMessages
       setMessages(updatedMessages)
       setInput("")
+      setPersistenceError(null)
+      isStreamingRef.current = true
       setIsStreaming(true)
 
       let convId = convIdRef.current
-      if (!convId) {
-        convId = await createConversation()
-        convIdRef.current = convId
-        window.history.replaceState(null, "", `/chat/${convId}`)
-      }
-
-      const assistantId = crypto.randomUUID()
-      setMessages((prev) => [
-        ...prev,
-        { id: assistantId, role: "assistant", parts: [] },
-      ])
+      let assistantId: string | null = null
 
       try {
+        if (!convId) {
+          convId = await createConversation()
+          convIdRef.current = convId
+          window.history.replaceState(null, "", `/chat/${convId}`)
+        }
+
+        assistantId = crypto.randomUUID()
+        setMessages((prev) => {
+          const next: Message[] = [
+            ...prev,
+            { id: assistantId!, role: "assistant", parts: [] },
+          ]
+          messagesRef.current = next
+          return next
+        })
+
         const apiMessages = updatedMessages.map((m) => ({
           role: m.role,
           content: m.parts
@@ -174,7 +201,10 @@ export function ChatView({
                       { ...last, content: last.content + parsed.content },
                     ]
                   }
-                  return [...parts, { type: "text" as const, content: parsed.content }]
+                  return [
+                    ...parts,
+                    { type: "text" as const, content: parsed.content },
+                  ]
                 })
               }
 
@@ -190,7 +220,10 @@ export function ChatView({
                 ])
               }
             } catch (err) {
-              if (err instanceof Error && err.message !== "Failed to send message") {
+              if (
+                err instanceof Error &&
+                err.message !== "Failed to send message"
+              ) {
                 if (data.startsWith("{")) continue
                 throw err
               }
@@ -199,21 +232,47 @@ export function ChatView({
           }
         }
       } catch (error) {
-        updateAssistantParts(assistantId, (parts) => {
-          const errorText =
-            error instanceof Error
-              ? `Error: ${error.message}`
-              : "Something went wrong. Please try again."
-          if (parts.length > 0) {
-            return [...parts, { type: "text" as const, content: `\n\n${errorText}` }]
+        const errorText =
+          error instanceof Error
+            ? `Error: ${error.message}`
+            : "Something went wrong. Please try again."
+
+        if (assistantId) {
+          updateAssistantParts(assistantId, (parts) => {
+            if (parts.length > 0) {
+              return [
+                ...parts,
+                { type: "text" as const, content: `\n\n${errorText}` },
+              ]
+            }
+            return [{ type: "text" as const, content: errorText }]
+          })
+        } else {
+          const localErrorMessage: Message = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            parts: [{ type: "text", content: errorText }],
           }
-          return [{ type: "text" as const, content: errorText }]
-        })
+          setMessages((prev) => {
+            const next = [...prev, localErrorMessage]
+            messagesRef.current = next
+            return next
+          })
+        }
       } finally {
+        isStreamingRef.current = false
         setIsStreaming(false)
         const currentId = convIdRef.current
         if (currentId) {
-          await updateConversation(currentId, messagesRef.current)
+          try {
+            await updateConversation(currentId, messagesRef.current)
+          } catch (saveError) {
+            setPersistenceError(
+              saveError instanceof Error
+                ? saveError.message
+                : "This conversation could not be saved."
+            )
+          }
         }
       }
     },
@@ -231,7 +290,9 @@ export function ChatView({
   }, [initialPrompt, sendMessage])
   useEffect(() => {
     setMessages(initialMessages)
+    messagesRef.current = initialMessages
     setInput("")
+    setPersistenceError(null)
   }, [conversationId]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -260,6 +321,14 @@ export function ChatView({
 
   const inputBox = (
     <form onSubmit={handleSubmit} className="w-full">
+      {persistenceError && (
+        <p
+          role="alert"
+          className="mb-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 font-body text-sm text-red-600 dark:text-red-300"
+        >
+          {persistenceError}
+        </p>
+      )}
       <div className="rounded-2xl border border-border bg-card shadow-[0_0_0_1px_var(--ring)]">
         <textarea
           ref={textareaRef}
@@ -272,7 +341,10 @@ export function ChatView({
         />
         <div className="flex items-center justify-end px-3 pb-3">
           <div className="flex items-center gap-2">
-            <ModelSelector selected={selectedModel} onSelect={setSelectedModel} />
+            <ModelSelector
+              selected={selectedModel}
+              onSelect={setSelectedModel}
+            />
             {input.trim() && !isStreaming ? (
               <button
                 type="submit"
@@ -305,8 +377,8 @@ export function ChatView({
                   <div
                     className={`${
                       message.role === "user"
-                        ? "max-w-[90%] md:max-w-[85%] rounded-2xl rounded-br-lg bg-secondary dark:bg-foreground/10 px-4 py-2.5 md:px-5 md:py-3 text-foreground"
-                        : "max-w-full md:max-w-[85%] pr-2 md:pr-8"
+                        ? "max-w-[90%] rounded-2xl rounded-br-lg bg-secondary px-4 py-2.5 text-foreground md:max-w-[85%] md:px-5 md:py-3 dark:bg-foreground/10"
+                        : "max-w-full pr-2 md:max-w-[85%] md:pr-8"
                     }`}
                   >
                     {message.role === "assistant" && (
@@ -328,7 +400,7 @@ export function ChatView({
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-border/50 px-4 pb-3 pt-2 md:border-t-0 md:px-6 md:pb-4">
+          <div className="shrink-0 border-t border-border/50 px-4 pt-2 pb-3 md:border-t-0 md:px-6 md:pb-4">
             <div className="mx-auto max-w-3xl">
               {inputBox}
               <p className="mt-1.5 hidden text-center font-heading text-xs text-muted-foreground md:block">
@@ -357,7 +429,10 @@ export function ChatView({
                 {suggestedPrompts.map(({ icon: Icon, label, prompt }) => (
                   <button
                     key={label}
-                    onClick={() => { setInput(prompt); textareaRef.current?.focus() }}
+                    onClick={() => {
+                      setInput(prompt)
+                      textareaRef.current?.focus()
+                    }}
                     className="flex shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 font-heading text-sm text-muted-foreground shadow-[0_0_0_1px_var(--ring)] transition-all hover:bg-secondary hover:text-foreground"
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -366,30 +441,40 @@ export function ChatView({
                 ))}
               </div>
               {/* Desktop: 2 centered rows */}
-              <div className="hidden md:flex flex-col items-center gap-2">
+              <div className="hidden flex-col items-center gap-2 md:flex">
                 <div className="flex items-center gap-2">
-                  {suggestedPrompts.slice(0, 4).map(({ icon: Icon, label, prompt }) => (
-                    <button
-                      key={label}
-                      onClick={() => { setInput(prompt); textareaRef.current?.focus() }}
-                      className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 font-heading text-sm text-muted-foreground shadow-[0_0_0_1px_var(--ring)] transition-all hover:bg-secondary hover:text-foreground"
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                      {label}
-                    </button>
-                  ))}
+                  {suggestedPrompts
+                    .slice(0, 4)
+                    .map(({ icon: Icon, label, prompt }) => (
+                      <button
+                        key={label}
+                        onClick={() => {
+                          setInput(prompt)
+                          textareaRef.current?.focus()
+                        }}
+                        className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 font-heading text-sm text-muted-foreground shadow-[0_0_0_1px_var(--ring)] transition-all hover:bg-secondary hover:text-foreground"
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        {label}
+                      </button>
+                    ))}
                 </div>
                 <div className="flex items-center gap-2">
-                  {suggestedPrompts.slice(4).map(({ icon: Icon, label, prompt }) => (
-                    <button
-                      key={label}
-                      onClick={() => { setInput(prompt); textareaRef.current?.focus() }}
-                      className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 font-heading text-sm text-muted-foreground shadow-[0_0_0_1px_var(--ring)] transition-all hover:bg-secondary hover:text-foreground"
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                      {label}
-                    </button>
-                  ))}
+                  {suggestedPrompts
+                    .slice(4)
+                    .map(({ icon: Icon, label, prompt }) => (
+                      <button
+                        key={label}
+                        onClick={() => {
+                          setInput(prompt)
+                          textareaRef.current?.focus()
+                        }}
+                        className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 font-heading text-sm text-muted-foreground shadow-[0_0_0_1px_var(--ring)] transition-all hover:bg-secondary hover:text-foreground"
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        {label}
+                      </button>
+                    ))}
                 </div>
               </div>
             </div>
