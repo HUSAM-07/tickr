@@ -1,24 +1,25 @@
-import { OpenRouter } from "@openrouter/sdk"
+import Anthropic from "@anthropic-ai/sdk"
 import { allTools, SYSTEM_PROMPT } from "@/lib/tools"
+import { DEFAULT_MODEL, MODELS } from "@/lib/models"
 import type { WidgetType } from "@/lib/types"
 import { SMA, RSI, EMA, BollingerBands, MACD, ATR } from "technicalindicators"
 import { INTERVAL_MAP } from "@/lib/deriv/constants"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 
-const openrouter = new OpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY,
-})
+// Reads ANTHROPIC_API_KEY from the environment
+const anthropic = new Anthropic()
+
+/** Tool definitions in the Messages API shape ({ name, description, input_schema }) */
+const tools: Anthropic.Beta.BetaTool[] = allTools.map(({ function: fn }) => ({
+  name: fn.name,
+  description: fn.description,
+  input_schema: fn.parameters as Anthropic.Beta.BetaTool.InputSchema,
+}))
 
 const encoder = new TextEncoder()
 
 function sseEncode(data: string): Uint8Array {
   return encoder.encode(`data: ${data}\n\n`)
-}
-
-type ToolCallAccumulator = {
-  id: string
-  name: string
-  arguments: string
 }
 
 const WIDGET_NAMES = new Set([
@@ -56,12 +57,7 @@ function toolNameToWidgetType(name: string): WidgetType {
 
 const MAX_MESSAGES = 50
 const MAX_CONTENT_LENGTH = 10_000
-const ALLOWED_MODELS = new Set([
-  "google/gemma-4-26b-a4b-it",
-  "google/gemma-4-31b-it:free",
-  "z-ai/glm-4.7-flash",
-  "minimax/minimax-m2.1",
-])
+const ALLOWED_MODELS = new Set(MODELS.map((m) => m.id))
 
 type Candle = {
   epoch: number
@@ -558,7 +554,7 @@ export async function POST(request: Request) {
   const modelId =
     typeof body.model === "string" && ALLOWED_MODELS.has(body.model)
       ? body.model
-      : "minimax/minimax-m2.1"
+      : DEFAULT_MODEL.id
 
   const { data: rateLimitAllowed, error: rateLimitError } = await supabase.rpc(
     "consume_api_rate_limit",
@@ -577,18 +573,7 @@ export async function POST(request: Request) {
     })
   }
 
-  // Build conversation with system prompt
-  const conversationMessages: Array<{
-    role: string
-    content?: string
-    toolCalls?: Array<{
-      id: string
-      type: string
-      function: { name: string; arguments: string }
-    }>
-    toolCallId?: string
-  }> = [
-    { role: "system", content: SYSTEM_PROMPT },
+  const conversation: Anthropic.Beta.BetaMessageParam[] = [
     ...(messages as { role: "user" | "assistant"; content: string }[]),
   ]
 
@@ -601,178 +586,118 @@ export async function POST(request: Request) {
         while (iterations < MAX_ITERATIONS) {
           iterations++
 
-          const stream = await openrouter.chat.send({
-            chatRequest: {
-              model: modelId,
-              messages: conversationMessages as Parameters<
-                typeof openrouter.chat.send
-              >[0]["chatRequest"]["messages"],
-              tools: allTools,
-              stream: true,
-            },
+          const stream = anthropic.beta.messages.stream({
+            model: modelId,
+            max_tokens: 64000,
+            system: SYSTEM_PROMPT,
+            messages: conversation,
+            tools,
+            output_config: { effort: "medium" },
+            // Caches tools + system prompt + history so each tool-loop turn reuses the prefix
+            cache_control: { type: "ephemeral" },
+            // On a policy decline, the API retries the request on a fallback model
+            betas: ["server-side-fallback-2026-07-01"],
+            fallbacks: "default",
           })
 
-          let accumulatedContent = ""
-          let finishReason: string | null = null
-          const toolCalls = new Map<number, ToolCallAccumulator>()
-          let chunkCount = 0
+          stream.on("text", (content) => {
+            controller.enqueue(
+              sseEncode(JSON.stringify({ type: "text_delta", content }))
+            )
+          })
 
-          for await (const chunk of stream) {
-            chunkCount++
+          const message = await stream.finalMessage()
 
-            // Some providers return error in the chunk itself
-            if ((chunk as Record<string, unknown>).error) {
-              const err = (chunk as Record<string, unknown>).error as {
-                message?: string
-              }
-              throw new Error(err?.message ?? "Model returned an error")
-            }
+          console.log(
+            `[chat/route] Turn done: model=${message.model}, stop_reason=${message.stop_reason}, blocks=${message.content.length}, cache_read=${message.usage.cache_read_input_tokens ?? 0}`
+          )
 
-            const choice = chunk.choices?.[0]
-            if (!choice) continue
-
-            // Track finish reason
-            if (choice.finishReason) {
-              finishReason = choice.finishReason as string
-            }
-
-            // Stream text deltas
-            const content = choice.delta?.content
-            if (content) {
-              accumulatedContent += content
-              controller.enqueue(
-                sseEncode(JSON.stringify({ type: "text_delta", content }))
+          if (message.stop_reason === "refusal") {
+            controller.enqueue(
+              sseEncode(
+                JSON.stringify({
+                  type: "text_delta",
+                  content: "\n\nI can't help with that request.",
+                })
               )
-            }
+            )
+            break
+          }
 
-            // Accumulate tool calls
-            const deltaToolCalls = choice.delta?.toolCalls
-            if (deltaToolCalls) {
-              for (const tc of deltaToolCalls) {
-                const existing = toolCalls.get(tc.index)
-                if (existing) {
-                  // Append arguments fragment
-                  if (tc.function?.arguments) {
-                    existing.arguments += tc.function.arguments
-                  }
-                } else {
-                  // New tool call
-                  toolCalls.set(tc.index, {
-                    id: tc.id ?? "",
-                    name: tc.function?.name ?? "",
-                    arguments: tc.function?.arguments ?? "",
+          // After a mid-output fallback, blocks before the last `fallback` marker come
+          // from the model that declined: keep its text, drop its thinking and tool calls.
+          const boundary = message.content.findLastIndex(
+            (b) => b.type === "fallback"
+          )
+          const content = message.content.filter(
+            (b, i) => i > boundary || b.type === "text"
+          )
+          const toolUses = content.filter(
+            (b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use"
+          )
+
+          if (message.stop_reason !== "tool_use" || toolUses.length === 0) break
+
+          // Pass the full content back (thinking blocks included) so the next turn continues it
+          conversation.push({ role: "assistant", content })
+
+          for (const tu of toolUses) {
+            if (WIDGET_NAMES.has(tu.name)) {
+              controller.enqueue(
+                sseEncode(
+                  JSON.stringify({
+                    type: "widget",
+                    toolCallId: tu.id,
+                    widgetType: toolNameToWidgetType(tu.name),
+                    data: tu.input,
                   })
-                }
-              }
+                )
+              )
             }
           }
 
-          console.log(
-            `[chat/route] Stream done: ${chunkCount} chunks, finishReason=${finishReason}, content=${accumulatedContent.length} chars, toolCalls=${toolCalls.size}`
-          )
-
-          // If model finished with tool calls, process them and loop
-          if (finishReason === "tool_calls" && toolCalls.size > 0) {
-            const assistantToolCalls: Array<{
-              id: string
-              type: string
-              function: { name: string; arguments: string }
-            }> = []
-
-            // Emit widget events and build tool call records
-            for (const [, tc] of toolCalls) {
-              if (WIDGET_NAMES.has(tc.name)) {
+          const toolResults = await Promise.all(
+            toolUses.map(
+              async (tu): Promise<Anthropic.Beta.BetaToolResultBlockParam> => {
                 try {
-                  const parsedArgs = JSON.parse(tc.arguments)
-                  controller.enqueue(
-                    sseEncode(
-                      JSON.stringify({
-                        type: "widget",
-                        toolCallId: tc.id,
-                        widgetType: toolNameToWidgetType(tc.name),
-                        data: parsedArgs,
-                      })
-                    )
-                  )
-                } catch {
-                  // If JSON parse fails, emit as text
-                  controller.enqueue(
-                    sseEncode(
-                      JSON.stringify({
-                        type: "text_delta",
-                        content: `\n[Failed to render ${tc.name}]\n`,
-                      })
-                    )
-                  )
-                }
-              }
-
-              assistantToolCalls.push({
-                id: tc.id,
-                type: "function",
-                function: {
-                  name: tc.name,
-                  arguments: tc.arguments,
-                },
-              })
-            }
-
-            // Append assistant message with tool calls
-            conversationMessages.push({
-              role: "assistant",
-              content: accumulatedContent || undefined,
-              toolCalls: assistantToolCalls,
-            })
-
-            // Append tool results
-            for (const tc of assistantToolCalls) {
-              let toolResult: string
-
-              if (tc.function.name === "analyze_market") {
-                try {
-                  const args = JSON.parse(tc.function.arguments)
-                  toolResult = JSON.stringify(
-                    await computeMarketAnalysis(
+                  let result: Record<string, unknown> = { rendered: true }
+                  if (tu.name === "analyze_market") {
+                    const args = tu.input as {
+                      symbol: string
+                      timeframe?: string
+                      indicators?: string[]
+                    }
+                    result = await computeMarketAnalysis(
                       args.symbol,
                       args.timeframe,
                       args.indicators
                     )
-                  )
+                  } else if (tu.name === "web_search") {
+                    const args = tu.input as { query: string; count?: number }
+                    result = await performWebSearch(args.query, args.count)
+                  }
+                  return {
+                    type: "tool_result",
+                    tool_use_id: tu.id,
+                    content: JSON.stringify(result),
+                  }
                 } catch (err) {
-                  toolResult = JSON.stringify({
-                    error:
-                      err instanceof Error ? err.message : "Analysis failed",
-                  })
+                  return {
+                    type: "tool_result",
+                    tool_use_id: tu.id,
+                    content: JSON.stringify({
+                      error:
+                        err instanceof Error ? err.message : "Tool call failed",
+                    }),
+                    is_error: true,
+                  }
                 }
-              } else if (tc.function.name === "web_search") {
-                try {
-                  const args = JSON.parse(tc.function.arguments)
-                  toolResult = JSON.stringify(
-                    await performWebSearch(args.query, args.count)
-                  )
-                } catch (err) {
-                  toolResult = JSON.stringify({
-                    error:
-                      err instanceof Error ? err.message : "Web search failed",
-                  })
-                }
-              } else {
-                toolResult = JSON.stringify({ rendered: true })
               }
+            )
+          )
 
-              conversationMessages.push({
-                role: "tool",
-                content: toolResult,
-                toolCallId: tc.id,
-              })
-            }
-
-            // Continue the loop — model will generate more text
-            continue
-          }
-
-          // Model finished normally — break the loop
-          break
+          // All results go back in one user message; the model continues from there
+          conversation.push({ role: "user", content: toolResults })
         }
 
         controller.enqueue(sseEncode("[DONE]"))

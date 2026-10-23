@@ -78,9 +78,9 @@ export function ModelSelector({
             </div>
           </div>
 
-          <div className="border-t border-border" />
+          {MODELS.length > 1 && <div className="border-t border-border" />}
 
-          {!showAll ? (
+          {MODELS.length <= 1 ? null : !showAll ? (
             <button
               type="button"
               onClick={() => setShowAll(true)}
