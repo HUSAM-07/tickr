@@ -1,0 +1,9 @@
+{
+  "explanation": "Both have identical, correct tool flows, accurate numbers, the disclaimer, and 1-5% sizing. A loosely counts the EMA as possibly bullish, even though price sits just below EMA-20. A's 'low-to-medium' confidence fits the framework better than B's 'medium' for roughly two aligned indicators. B usefully flags the 4-minute-old tick and spells out the $200 balance threshold. The small flaws offset each other.",
+  "grounding": "tie",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "B",
+  "clarity": "tie",
+  "overall": "tie"
+}

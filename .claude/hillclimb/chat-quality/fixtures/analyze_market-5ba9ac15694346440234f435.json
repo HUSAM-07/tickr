@@ -1,0 +1,48 @@
+{
+  "name": "analyze_market",
+  "input": {
+    "symbol": "cryBTCUSD",
+    "timeframe": "1h",
+    "indicators": [
+      "sma",
+      "ema",
+      "rsi",
+      "macd",
+      "bollinger",
+      "atr"
+    ]
+  },
+  "result": {
+    "symbol": "cryBTCUSD",
+    "timeframe": "1h",
+    "timeframe_requested": "1h",
+    "current_price": 80907.65,
+    "price_change_pct": 0.0094,
+    "candles_analyzed": 500,
+    "market_status": "open",
+    "exchange_is_open": null,
+    "is_trading_suspended": null,
+    "last_tick_at": 1792807200,
+    "last_tick_age_seconds": 3209,
+    "price_is_stale": false,
+    "high_24": 82032.351,
+    "low_24": 80466.65,
+    "sma_20": 81417.87705,
+    "sma_50": 81689.04848,
+    "ema_20": 81311.22266,
+    "rsi_14": 40.26,
+    "macd": {
+      "macd": -258.49167,
+      "signal": -202.49392,
+      "histogram": -55.99775
+    },
+    "bollinger": {
+      "upper": 82148.35565,
+      "middle": 81417.87705,
+      "lower": 80687.39845
+    },
+    "atr_14": 403.28427,
+    "trend": "bearish",
+    "volatility": "medium"
+  }
+}

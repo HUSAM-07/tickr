@@ -1,0 +1,9 @@
+{
+  "explanation": "Both render both charts and run both analyses in parallel, on identical data. A's numbers check out (24h-range positions of ~28% and ~46%, ATR% values), and it correctly says both MACD lines are above their signal lines. B garbles the MACD row ('line still below signal's zero-line'), says a bullish crossover 'hasn't confirmed' when the signal-line cross has already happened, and calls ETH's mid-range position 'upper-middle'. Both include the disclaimer and reach the same sensible no-clear-winner conclusion.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "A"
+}

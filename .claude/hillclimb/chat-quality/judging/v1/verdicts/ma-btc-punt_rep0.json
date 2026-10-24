@@ -1,0 +1,9 @@
+{
+  "explanation": "Both fetched identical data, ran the right parallel chart + analysis calls, reached a low-confidence 'wait' verdict, and included the disclaimer and 1-5% sizing. Candidate A misreads MACD: it says the line (-110) is below its signal (-144) and calls it bearish, when -110 is above -144 (bullish). It also claims the histogram is 'rising', which one snapshot can't show. Candidate B reads every indicator correctly, including MACD as the one bullish leaner, and its confluence count follows from the data.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

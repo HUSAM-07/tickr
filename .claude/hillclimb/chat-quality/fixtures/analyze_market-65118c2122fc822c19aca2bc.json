@@ -1,0 +1,49 @@
+{
+  "name": "analyze_market",
+  "input": {
+    "symbol": "frxEURUSD",
+    "timeframe": "1h",
+    "indicators": [
+      "sma",
+      "ema",
+      "rsi",
+      "macd",
+      "bollinger",
+      "atr"
+    ]
+  },
+  "result": {
+    "symbol": "frxEURUSD",
+    "timeframe": "1h",
+    "timeframe_requested": "1h",
+    "current_price": 1.11948,
+    "price_change_pct": 0.0152,
+    "candles_analyzed": 365,
+    "market_status": "closed",
+    "exchange_is_open": null,
+    "is_trading_suspended": null,
+    "last_tick_at": 1792782000,
+    "last_tick_age_seconds": 28327,
+    "price_is_stale": true,
+    "high_24": 1.12265,
+    "low_24": 1.11848,
+    "market_status_note": "Market is closed for frxEURUSD. Showing last close from 2026-10-23T19:00:00.000Z.",
+    "sma_20": 1.12023,
+    "sma_50": 1.12158,
+    "ema_20": 1.12018,
+    "rsi_14": 42.34,
+    "macd": {
+      "macd": -0.0006,
+      "signal": -0.00059,
+      "histogram": -0.00001
+    },
+    "bollinger": {
+      "upper": 1.12198,
+      "middle": 1.12023,
+      "lower": 1.11848
+    },
+    "atr_14": 0.00098,
+    "trend": "bearish",
+    "volatility": "low"
+  }
+}

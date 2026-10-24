@@ -1,0 +1,9 @@
+{
+  "explanation": "The user asked for a signal, and A never calls get_signals, which the Signal Generation Workflow marks as critical. A gives a careful, well-grounded 'no clear signal' read instead. B follows the full workflow, and its medium-confidence PUT matches the framework's three-aligned rule, with conflicts and sizing stated. B has some grounding slips: it claims a 'widening' histogram it can't know, passes trend 'bearish' into the widget against the tool's 'bullish', and calls the SMA-50 above price 'support'. Overall B's complete workflow outweighs those small slips.",
+  "grounding": "A",
+  "analysis": "tie",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

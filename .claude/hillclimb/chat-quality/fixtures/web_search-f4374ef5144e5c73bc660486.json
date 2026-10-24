@@ -1,0 +1,10 @@
+{
+  "name": "web_search",
+  "input": {
+    "query": "Bitcoin price news today BTC market drivers",
+    "count": 5
+  },
+  "result": {
+    "error": "Search failed: 422 "
+  }
+}

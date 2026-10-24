@@ -1,0 +1,48 @@
+{
+  "name": "analyze_market",
+  "input": {
+    "symbol": "BOOM1000",
+    "timeframe": "5m",
+    "indicators": [
+      "sma",
+      "ema",
+      "rsi",
+      "macd",
+      "bollinger",
+      "atr"
+    ]
+  },
+  "result": {
+    "symbol": "BOOM1000",
+    "timeframe": "5m",
+    "timeframe_requested": "5m",
+    "current_price": 15703.906,
+    "price_change_pct": -0.0146,
+    "candles_analyzed": 500,
+    "market_status": "open",
+    "exchange_is_open": null,
+    "is_trading_suspended": null,
+    "last_tick_at": 1792810200,
+    "last_tick_age_seconds": 136,
+    "price_is_stale": false,
+    "high_24": 15771.43,
+    "low_24": 15462.847,
+    "sma_20": 15692.3897,
+    "sma_50": 15719.99502,
+    "ema_20": 15699.46494,
+    "rsi_14": 50.93,
+    "macd": {
+      "macd": -3.77184,
+      "signal": -7.50795,
+      "histogram": 3.73611
+    },
+    "bollinger": {
+      "upper": 15714.44415,
+      "middle": 15692.3897,
+      "lower": 15670.33525
+    },
+    "atr_14": 7.83891,
+    "trend": "bearish",
+    "volatility": "low"
+  }
+}

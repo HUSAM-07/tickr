@@ -1,0 +1,9 @@
+{
+  "explanation": "Both candidates use the same data, the same tool pattern and accurate numbers, and both carry the disclaimer. B adds small unsupported glosses ('bullish momentum is building', 'after a pullback from the highs') that a single snapshot cannot show, while A sticks to what the data says. The gap is too small to separate them.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

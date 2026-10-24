@@ -1,0 +1,10 @@
+{
+  "name": "web_search",
+  "input": {
+    "query": "Bitcoin BTC price news",
+    "count": 5
+  },
+  "result": {
+    "error": "Search failed: 422 "
+  }
+}

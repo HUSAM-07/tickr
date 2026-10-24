@@ -1,0 +1,41 @@
+{
+  "name": "analyze_market",
+  "input": {
+    "symbol": "OTC_NDX",
+    "timeframe": "1h",
+    "indicators": [
+      "sma",
+      "rsi",
+      "macd"
+    ]
+  },
+  "result": {
+    "symbol": "OTC_NDX",
+    "timeframe": "1h",
+    "timeframe_requested": "1h",
+    "current_price": 28952.55,
+    "price_change_pct": -0.1156,
+    "candles_analyzed": 238,
+    "market_status": "closed",
+    "exchange_is_open": null,
+    "is_trading_suspended": null,
+    "last_tick_at": 1792782000,
+    "last_tick_age_seconds": 29096,
+    "price_is_stale": true,
+    "high_24": 29410.45,
+    "low_24": 28824.95,
+    "market_status_note": "Market is closed for OTC_NDX. Showing last close from 2026-10-23T19:00:00.000Z.",
+    "sma_20": 29008.0425,
+    "sma_50": 29340.009,
+    "rsi_14": 39.43,
+    "macd": {
+      "macd": -88.03275,
+      "signal": -107.91858,
+      "histogram": 19.88583,
+      "line_vs_signal": "above",
+      "bias": "bullish"
+    },
+    "trend": "bearish",
+    "volatility": "medium"
+  }
+}

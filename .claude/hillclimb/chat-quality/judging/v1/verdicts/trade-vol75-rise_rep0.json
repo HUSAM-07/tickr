@@ -1,0 +1,9 @@
+{
+  "explanation": "The tool sequences are identical: chart and analyze_market in parallel, then a CALL ticket for $10 over 5m. Both include the disclaimer and position-size guidance, and both give an honest medium-to-low confidence rating. B labels price_change_pct as a '24-hour change', which the tool result doesn't support. A correctly calls it the recent window and ties the $10 stake to a minimum $200 balance for 1-5% sizing. The difference is marginal.",
+  "grounding": "A",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "A",
+  "clarity": "tie",
+  "overall": "A"
+}

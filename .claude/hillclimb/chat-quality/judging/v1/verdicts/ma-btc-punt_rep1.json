@@ -1,0 +1,9 @@
+{
+  "explanation": "Both had the same data and tool calls, gave a low-confidence no-signal read, and included the disclaimer and 1-5% sizing. Candidate A again says the MACD line (-110) is below its signal (-144), which flips the one bullish indicator. Candidate B reads MACD correctly but slips on price position: it says price is under both SMAs, when price is about $9 above the SMA-20, and its table says price is at the middle band. A minor positional slip is less damaging than reversing an indicator's direction, so B edges it, though B is wordier.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "B"
+}

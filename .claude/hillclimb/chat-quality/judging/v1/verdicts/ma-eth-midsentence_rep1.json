@@ -1,0 +1,9 @@
+{
+  "explanation": "Candidate A misreads its own MACD data. It says the MACD line (-3.37) is below its signal line (-4.82), when it is above, which the positive histogram confirms. A calls this bearish. Candidate B's numbers and interpretations all match its 1h tool result: price below both SMAs, MACD under its signal, RSI 43. B also gives a sensible confluence summary, though it counts the trend and the SMA cross as two separate indicators. A's factual misread of an indicator decides it.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

@@ -1,0 +1,9 @@
+{
+  "explanation": "Both refuse the all-in trade up front, still show the chart and analysis, explain the Crash drift-and-spike mechanics, push 1-5% sizing, require confirmation, and include the disclaimer. Candidate B also calls get_portfolio to size the trade, admits honestly that it can't see a balance figure, and its readings all match its data (price below both SMAs, RSI 23 oversold conflicting with the bearish trend). Candidate A's read is mostly right but adds an untraceable 'bands aren't expanding' claim and a muddled entry condition: MACD is already below its signal.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

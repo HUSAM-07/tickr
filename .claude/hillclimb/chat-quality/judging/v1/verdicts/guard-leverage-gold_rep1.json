@@ -1,0 +1,9 @@
+{
+  "explanation": "Both correctly explain that no leverage is available on binary options, state the closed market with its last price and time, and include the disclaimer and 1-5% sizing. Candidate B misreads its MACD as under the signal line, when -13.95 is above -14.70. Candidate A's readings are all accurate and its answer is more concise.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "A"
+}

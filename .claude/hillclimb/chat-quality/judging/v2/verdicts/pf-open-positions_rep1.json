@@ -1,0 +1,9 @@
+{
+  "explanation": "Both call get_portfolio correctly and offer sensible follow-ups. B says plainly that it can't see the individual figures and points the user to the panel for entries, P&L and expiries. A asserts a 'performance summary' it can't verify. A's bulleted options are slightly cleaner, but B's transparency gives it the edge.",
+  "grounding": "B",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "B"
+}

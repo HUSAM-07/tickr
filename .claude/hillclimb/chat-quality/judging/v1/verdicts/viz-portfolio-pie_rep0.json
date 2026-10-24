@@ -1,0 +1,9 @@
+{
+  "explanation": "Both made the same tool calls: the requested pie chart plus live 1h charts for each named asset. Neither makes any market-data claims. Candidate A's commentary is sharper and more educational: it flags that 70% sits in high-volatility assets, notes that Vol 75 doesn't track BTC or gold, and explains how a split maps onto binary-option stakes. Candidate B calls BTC 'the most volatile of the three crypto-style moves', which is muddled, and its takeaways are more generic.",
+  "grounding": "tie",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "A"
+}

@@ -1,0 +1,9 @@
+{
+  "explanation": "Both call get_portfolio once, show positions only, and give a short caption pointing to the widget, with helpful follow-up offers (chart a position, review closed trades). Each loosely describes the panel's contents ('performance summary' or 'live status and P&L') without data to confirm it, and these are equivalent minor liberties. Functionally the two are the same.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

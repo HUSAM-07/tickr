@@ -1,0 +1,9 @@
+{
+  "explanation": "Both make the correct single get_portfolio call and give a brief caption with sensible follow-up offers. A lists three follow-up options and B offers two in prose. Neither invents position data. The differences are cosmetic.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

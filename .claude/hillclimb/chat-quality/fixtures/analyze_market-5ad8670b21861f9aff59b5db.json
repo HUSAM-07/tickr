@@ -1,0 +1,49 @@
+{
+  "name": "analyze_market",
+  "input": {
+    "symbol": "frxXAUUSD",
+    "timeframe": "5m",
+    "indicators": [
+      "sma",
+      "ema",
+      "rsi",
+      "macd",
+      "bollinger",
+      "atr"
+    ]
+  },
+  "result": {
+    "symbol": "frxXAUUSD",
+    "timeframe": "5m",
+    "timeframe_requested": "5m",
+    "current_price": 3998.17,
+    "price_change_pct": 0.1122,
+    "candles_analyzed": 417,
+    "market_status": "closed",
+    "exchange_is_open": null,
+    "is_trading_suspended": null,
+    "last_tick_at": 1792788600,
+    "last_tick_age_seconds": 21718,
+    "price_is_stale": true,
+    "high_24": 4033.42,
+    "low_24": 3976.01,
+    "market_status_note": "Market is closed for frxXAUUSD. Showing last close from 2026-10-23T20:50:00.000Z.",
+    "sma_20": 3997.525,
+    "sma_50": 3997.4554,
+    "ema_20": 3996.9523,
+    "rsi_14": 52.71,
+    "macd": {
+      "macd": -0.69105,
+      "signal": -0.48379,
+      "histogram": -0.20725
+    },
+    "bollinger": {
+      "upper": 4001.58659,
+      "middle": 3997.525,
+      "lower": 3993.46341
+    },
+    "atr_14": 2.3913,
+    "trend": "bullish",
+    "volatility": "low"
+  }
+}

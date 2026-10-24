@@ -1,0 +1,9 @@
+{
+  "explanation": "Both candidates fetch the same R_75 data, render the chart and analysis in parallel, and every number they cite matches the tool result. B states plainly that the trend and MACD conflict with a neutral RSI, and it includes the required risk disclaimer. A gives entry-timing guidance ('a cleaner entry') with no disclaimer, so B wins on safety.",
+  "grounding": "tie",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "B",
+  "clarity": "tie",
+  "overall": "B"
+}

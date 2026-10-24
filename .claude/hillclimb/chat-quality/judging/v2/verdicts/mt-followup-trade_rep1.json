@@ -1,0 +1,9 @@
+{
+  "explanation": "Both correct the earlier ungrounded reply and analyze before showing the ticket. A's 1m read is fully accurate, flags that the data contradicts a Rise, and offers clear options (confirm, wait, or a Fall ticket). It frames sizing correctly as dependent on the user's balance. B's 5m data does support a mild bullish lean, but it double-counts SMA signals to reach 'medium confidence' and invents 'the EMA is flat'. It also assumes $5 fits 1-5% of a 'typical account', a sizing claim it can't make without knowing the balance.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "A",
+  "clarity": "tie",
+  "overall": "A"
+}

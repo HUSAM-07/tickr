@@ -1,0 +1,9 @@
+{
+  "explanation": "Both correctly reject the leverage premise with a clear fixed-risk explanation. Both state the closed market with its last price and timestamp, report accurate indicator values, and include the disclaimer and 1-5% sizing. A explains the CFD and margin difference a bit more and explicitly notes conflicting signals, but used a reduced indicator set. B is more concise and mentions the demo account. Neither has a meaningful advantage.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

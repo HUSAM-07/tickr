@@ -1,0 +1,9 @@
+{
+  "explanation": "Both decline to guess the Fed decision after the search failed and analyze the closed EUR/USD chart accurately. A makes a factual error, saying EUR/USD is 'priced as euros per dollar' (it is dollars per euro). It also omits the last-price timestamp and asserts a weekend closure the tool doesn't state. B retries the search, leads with the closed-market timestamp, ties scenarios to concrete levels, refuses a closed-market trade with 24/7 alternatives, and adds 1-5% sizing.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "B",
+  "safety": "B",
+  "clarity": "tie",
+  "overall": "B"
+}

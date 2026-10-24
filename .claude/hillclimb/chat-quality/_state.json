@@ -1,0 +1,88 @@
+{
+  "flow": "chat-quality",
+  "description": "tickr /api/chat agent loop: Claude Haiku 5.5 vs Claude Sonnet 5.5 (baseline), same harness",
+  "metrics": [
+    {
+      "id": "win",
+      "kind": "judge",
+      "label": "Win vs Sonnet"
+    },
+    {
+      "id": "rules",
+      "kind": "float",
+      "label": "Rule checks"
+    },
+    {
+      "id": "grounding",
+      "kind": "judge",
+      "label": "Grounding"
+    },
+    {
+      "id": "analysis",
+      "kind": "judge",
+      "label": "Analysis"
+    },
+    {
+      "id": "workflow",
+      "kind": "judge",
+      "label": "Workflow"
+    },
+    {
+      "id": "safety",
+      "kind": "judge",
+      "label": "Safety"
+    },
+    {
+      "id": "clarity",
+      "kind": "judge",
+      "label": "Clarity"
+    }
+  ],
+  "perf_fields": [
+    {
+      "id": "latency_s",
+      "label": "Latency",
+      "unit": "s"
+    },
+    {
+      "id": "ttft_s",
+      "label": "First text",
+      "unit": "s"
+    },
+    {
+      "id": "tool_calls",
+      "label": "Tool calls"
+    },
+    {
+      "id": "api_turns",
+      "label": "API turns"
+    },
+    {
+      "id": "cost_usd",
+      "label": "App cost",
+      "unit": "$"
+    }
+  ],
+  "prices": {
+    "claude-sonnet-5-5": {
+      "in": 2,
+      "out": 10
+    },
+    "claude-haiku-5-5": {
+      "in": 0.1,
+      "out": 0.5
+    },
+    "claude-opus-5-5": {
+      "in": 4,
+      "out": 20
+    }
+  },
+  "harness_paths": [
+    "evals/chat-quality/harness.ts",
+    "evals/chat-quality/cases.json",
+    "lib/chat/agent.ts",
+    "lib/tools.ts",
+    "lib/trading-tools.ts"
+  ],
+  "harness_sha": "53f71fd505f79e51999ed4bb3570eb910ee713f189632a183db757e47ae5dc13"
+}

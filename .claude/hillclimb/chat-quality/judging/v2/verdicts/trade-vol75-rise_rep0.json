@@ -1,0 +1,9 @@
+{
+  "explanation": "Both run chart and analysis in parallel before preparing the same correct CALL ticket, and both include the disclaimer and the 1-5% sizing. A's confluence is internally consistent: trend and MACD agree, RSI and Bollinger are neutral, so low-to-medium confidence. It also flags the -0.5% move as contrary evidence and ties $10 to a $200 balance at 5%. B says 'three of five indicators' agree right after naming only two, which contradicts its own list. B's warning about the roughly 4-minute-old tick is a good touch but doesn't outweigh that.",
+  "grounding": "tie",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "A"
+}

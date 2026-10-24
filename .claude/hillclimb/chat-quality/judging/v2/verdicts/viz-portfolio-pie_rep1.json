@@ -1,0 +1,9 @@
+{
+  "explanation": "The two responses are nearly identical. Each renders the correct pie chart and three 1h charts with the right catalog symbols, flags the 70% concentration in high-volatility assets, explains that stakes rather than holdings are being split, recommends 1-5% sizing and includes the disclaimer. Neither makes ungrounded market claims. A explains its SMA overlay and B notes gold's market hours, which are minor touches that cancel out.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

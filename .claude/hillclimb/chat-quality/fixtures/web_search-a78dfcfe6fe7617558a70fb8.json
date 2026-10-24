@@ -1,0 +1,10 @@
+{
+  "name": "web_search",
+  "input": {
+    "query": "Federal Reserve latest FOMC meeting decision interest rates EUR/USD impact",
+    "count": 5
+  },
+  "result": {
+    "error": "Search failed: 422 "
+  }
+}

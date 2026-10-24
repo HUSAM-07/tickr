@@ -1,0 +1,9 @@
+{
+  "explanation": "Both make the identical show_leaderboard call and say honestly that they cannot see the names in the widget. B adds a short useful gloss on each sort metric; A is more concise. Neither is meaningfully better.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

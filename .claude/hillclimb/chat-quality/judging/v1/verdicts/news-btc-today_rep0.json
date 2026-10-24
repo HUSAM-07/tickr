@@ -1,0 +1,9 @@
+{
+  "explanation": "Both ran web_search alongside the chart and analysis, said plainly that search failed, and didn't invent headlines. Candidate A retried once, used a 1h timeframe that suits 'today', named sources to check, and read every indicator correctly against its data. Candidate B says MACD is still below its signal line when -110 is above -144, a factual misread, and gives less guidance on where to find the news.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "A",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "A"
+}

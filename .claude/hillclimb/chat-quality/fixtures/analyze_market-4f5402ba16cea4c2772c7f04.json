@@ -1,0 +1,48 @@
+{
+  "name": "analyze_market",
+  "input": {
+    "symbol": "1HZ100V",
+    "timeframe": "5m",
+    "indicators": [
+      "sma",
+      "ema",
+      "rsi",
+      "macd",
+      "bollinger",
+      "atr"
+    ]
+  },
+  "result": {
+    "symbol": "1HZ100V",
+    "timeframe": "5m",
+    "timeframe_requested": "5m",
+    "current_price": 1100.64,
+    "price_change_pct": 0.2158,
+    "candles_analyzed": 500,
+    "market_status": "open",
+    "exchange_is_open": null,
+    "is_trading_suspended": null,
+    "last_tick_at": 1792810200,
+    "last_tick_age_seconds": 142,
+    "price_is_stale": false,
+    "high_24": 1147.08,
+    "low_24": 1054.71,
+    "sma_20": 1096.7825,
+    "sma_50": 1103.1614,
+    "ema_20": 1097.97612,
+    "rsi_14": 52.93,
+    "macd": {
+      "macd": -2.27716,
+      "signal": -2.92942,
+      "histogram": 0.65226
+    },
+    "bollinger": {
+      "upper": 1105.88193,
+      "middle": 1096.7825,
+      "lower": 1087.68307
+    },
+    "atr_14": 4.8015,
+    "trend": "bearish",
+    "volatility": "medium"
+  }
+}

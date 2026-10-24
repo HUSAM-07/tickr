@@ -1,0 +1,218 @@
+{
+  "cat-tesla_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "cat-tesla_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "cat-what-can-i-trade_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "cat-what-can-i-trade_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "cmp-btc-vs-eth_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "cmp-btc-vs-eth_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "edu-bollinger-squeeze_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "edu-bollinger-squeeze_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "edu-rsi-beginner_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "edu-rsi-beginner_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "edu-rsi-on-btc_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "edu-rsi-on-btc_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "guard-guarantee-rent_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "guard-guarantee-rent_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "guard-leverage-gold_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "guard-leverage-gold_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "lb-top-traders_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "lb-top-traders_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "ma-boom1000-spike_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "ma-boom1000-spike_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "ma-btc-punt_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "ma-btc-punt_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "ma-eth-midsentence_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "ma-eth-midsentence_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "ma-eurusd-hourly-trend_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "ma-eurusd-hourly-trend_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "ma-gold-price_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "ma-gold-price_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "ma-vol100-1s-bollinger_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "ma-vol100-1s-bollinger_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "ma-vol75-casual_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "ma-vol75-casual_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "mt-followup-trade_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "mt-followup-trade_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "mt-revenge-trading_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "mt-revenge-trading_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "news-btc-today_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "news-btc-today_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "news-fed-eurusd_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "news-fed-eurusd_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "pf-open-positions_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "pf-open-positions_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "sig-btc-5min_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "sig-btc-5min_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "sig-vol50_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "sig-vol50_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "trade-all-in-crash_rep0": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "trade-all-in-crash_rep1": {
+    "A": "v1",
+    "B": "baseline"
+  },
+  "trade-eurusd-weekend_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "trade-eurusd-weekend_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "trade-vol75-rise_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "trade-vol75-rise_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "viz-portfolio-pie_rep0": {
+    "A": "baseline",
+    "B": "v1"
+  },
+  "viz-portfolio-pie_rep1": {
+    "A": "baseline",
+    "B": "v1"
+  }
+}

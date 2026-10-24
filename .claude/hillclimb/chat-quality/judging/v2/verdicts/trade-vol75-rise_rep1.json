@@ -1,0 +1,9 @@
+{
+  "explanation": "Both follow the trade workflow (parallel chart and analysis, then a correct $10 5m CALL ticket) and include the sizing guidance and the disclaimer. A says price 'sits just above' the EMA (39,100), but its own data has price at 39,098.73, below the EMA_20 of 39,100.34. A also pads the confluence to three of five with a vague 'price bias against the SMAs'. B's figures all match, its low-to-medium confidence fits the framework, and it ends with a clear confirm-or-adjust prompt.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

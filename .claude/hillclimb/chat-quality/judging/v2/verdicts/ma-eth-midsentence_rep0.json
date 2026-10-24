@@ -1,0 +1,9 @@
+{
+  "explanation": "Both candidates render the chart and run the full analysis in parallel, and every number each one quotes matches its own tool result (A uses 1h, B uses 5m). A gives an explicit confluence count that names the neutral RSI, sets concrete levels for confirming or invalidating the read, and answers the user's Merge-anniversary framing directly. B is accurate and concise but thinner: it has no confluence breakdown and only touches the anniversary in passing. A's 'from where it was an hour ago' reading of price_change_pct is a small assumption.",
+  "grounding": "tie",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "A"
+}

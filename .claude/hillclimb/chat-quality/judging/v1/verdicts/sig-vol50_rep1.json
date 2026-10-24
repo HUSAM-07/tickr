@@ -1,0 +1,9 @@
+{
+  "explanation": "Both run the full signal workflow, cite accurate values, flag the conflicting indicator, give 1-5% sizing and include the disclaimer. A says the histogram is 'widening' and that momentum is 'building', which one snapshot cannot support. B reads its 15m MACD correctly as the bullish conflict and follows the framework step by step, though it stretches RSI 42 to 'mildly bearish'. B is slightly better grounded; A is more concise.",
+  "grounding": "B",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "B"
+}

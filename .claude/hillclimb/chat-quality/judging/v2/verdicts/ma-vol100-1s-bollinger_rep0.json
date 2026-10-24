@@ -1,0 +1,9 @@
+{
+  "explanation": "Both render the 1HZ100V chart with Bollinger overlays in parallel with a full analyze_market call, and every number each one cites matches its own tool result. Both readings are correct and both point out the mixed or conflicting picture. Candidate A gives a directional 'wait for a breakout' read but leaves out the risk disclaimer, and its caveat that the 142-second tick age means the feed may be stale is speculative and could confuse the user. Candidate B includes the disclaimer and teaches more clearly how to read a band-walk versus a mean reversion.",
+  "grounding": "tie",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "B",
+  "clarity": "B",
+  "overall": "B"
+}

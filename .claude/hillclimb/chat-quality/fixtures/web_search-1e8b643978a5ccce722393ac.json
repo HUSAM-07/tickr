@@ -1,0 +1,10 @@
+{
+  "name": "web_search",
+  "input": {
+    "query": "Bitcoin price move today news why is Bitcoin moving",
+    "count": 5
+  },
+  "result": {
+    "error": "Search failed: 422 "
+  }
+}

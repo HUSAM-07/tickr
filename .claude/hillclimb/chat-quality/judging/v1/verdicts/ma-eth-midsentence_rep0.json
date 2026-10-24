@@ -1,0 +1,9 @@
+{
+  "explanation": "Both candidates rendered the chart and ran a full analyze_market in parallel, and every number in both matches its own tool result. A gives an accurate 5m read, but calling the bands a squeeze is a stretch. B adds an explicit confluence count with clear confirmation and invalidation levels. B also ties the read back to the user's Merge-anniversary framing and offers news. The edge is small and comes from analysis and relevance, not from accuracy.",
+  "grounding": "tie",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "B",
+  "overall": "B"
+}

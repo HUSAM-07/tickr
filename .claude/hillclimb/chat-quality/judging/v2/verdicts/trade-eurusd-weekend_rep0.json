@@ -1,0 +1,9 @@
+{
+  "explanation": "Both correctly refuse the trade on the closed EUR/USD market and give the last close. A misstates MACD: MACD -0.00006 vs signal -0.00012 means the line is above the signal, but A says 'still below its signal line'. B's numbers are all accurate, and B follows the closed-market rule by immediately rendering and analyzing a 24/7 alternative (R_75), flagging its mixed signals and recommending waiting. A only lists alternatives without charting one.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

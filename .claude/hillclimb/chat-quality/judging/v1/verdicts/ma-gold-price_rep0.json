@@ -1,0 +1,9 @@
+{
+  "explanation": "Both render the chart with full analysis on the same closed-market snapshot, state that gold is closed with the correct last price and timestamp, and read the indicators accurately (flat SMAs, neutral RSI, MACD slightly below signal, tight bands). B opens with the closed status and notes the quote is about 6 hours old, which is slightly closer to the spec's wording, while A puts the price first but flags the closure in the same sentence. Both offer 24/7 alternatives. The differences are negligible.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

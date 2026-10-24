@@ -1,0 +1,9 @@
+{
+  "explanation": "Both make the same leaderboard call and invent no names. A offers a little education on how rankings differ by metric. B is more transparent that it cannot read the widget, whereas A's '#1 is the current leader' is a non-answer. These balance out.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

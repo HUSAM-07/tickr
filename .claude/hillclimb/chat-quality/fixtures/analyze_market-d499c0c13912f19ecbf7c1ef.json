@@ -1,0 +1,46 @@
+{
+  "name": "analyze_market",
+  "input": {
+    "symbol": "R_75",
+    "timeframe": "5m",
+    "indicators": [
+      "bollinger",
+      "atr",
+      "rsi",
+      "macd",
+      "sma"
+    ]
+  },
+  "result": {
+    "symbol": "R_75",
+    "timeframe": "5m",
+    "timeframe_requested": "5m",
+    "current_price": 39140.5669,
+    "price_change_pct": 0.2247,
+    "candles_analyzed": 500,
+    "market_status": "open",
+    "exchange_is_open": null,
+    "is_trading_suspended": null,
+    "last_tick_at": 1792810200,
+    "last_tick_age_seconds": 207,
+    "price_is_stale": false,
+    "high_24": 40214.9079,
+    "low_24": 38610.6042,
+    "sma_20": 39086.34208,
+    "sma_50": 39001.22735,
+    "rsi_14": 53.34,
+    "macd": {
+      "macd": 47.09337,
+      "signal": 45.50304,
+      "histogram": 1.59033
+    },
+    "bollinger": {
+      "upper": 39299.67692,
+      "middle": 39086.34208,
+      "lower": 38873.00724
+    },
+    "atr_14": 133.74914,
+    "trend": "bullish",
+    "volatility": "medium"
+  }
+}

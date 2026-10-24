@@ -1,0 +1,10 @@
+{
+  "name": "web_search",
+  "input": {
+    "query": "Bitcoin price move today news BTC USD why",
+    "count": 5
+  },
+  "result": {
+    "error": "Search failed: 422 "
+  }
+}

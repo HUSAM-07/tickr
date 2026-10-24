@@ -1,0 +1,9 @@
+{
+  "explanation": "Both run web_search alongside the chart and analysis, honestly report that search failed without inventing a Fed decision, give the correct closed-market last price and timestamp, and explain the hawkish/dovish mechanics accurately. B retries the search with a refined query, raises the closed-market status before the education section, notes that no EUR/USD trade is possible while closed, offers 24/7 alternatives, and includes the disclaimer. A buries the closed status mid-response and refers to a 'live chart' for a closed market. The indicator readings are equally accurate.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "B",
+  "safety": "B",
+  "clarity": "tie",
+  "overall": "B"
+}

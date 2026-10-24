@@ -1,0 +1,9 @@
+{
+  "explanation": "Both clearly say Tesla isn't offered and list the stock-index alternatives, with US Tech 100 as the closest proxy. A stops there and only offers a chart, which misses the chart-first mandate. B renders the OTC_NDX proxy chart and reads it, leads with the closed-market status and the last close timestamp, interprets the conflicting indicators correctly with no forced signal, and includes the disclaimer.",
+  "grounding": "tie",
+  "analysis": "B",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

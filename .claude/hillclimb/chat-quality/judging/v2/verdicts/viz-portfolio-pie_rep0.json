@@ -1,0 +1,9 @@
+{
+  "explanation": "Both render the correct 40/30/30 pie chart plus a 1h chart for each of the three catalog symbols, make no market-data claims they can't support, note that 70% of the mix is high-volatility, explain that binary-option 'allocations' mean stakes rather than holdings, and include 1-5% sizing and the disclaimer. The differences are cosmetic. A adds indicator overlays but has one awkward phrase ('the most volatile of the crypto-style moves'). B adds the useful note that gold follows market hours.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

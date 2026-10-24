@@ -1,0 +1,9 @@
+{
+  "explanation": "B's lesson is broader, but it misreads its own MACD data. It says the MACD line is 'still below its signal line' and that 'no bullish cross has happened yet', while the tool result has MACD (-109.6) above signal (-144.1) with a positive histogram. A's narrower lesson is fully grounded: RSI 45.7, +0.004%, the 24h range, and the trend label treated with appropriate caution. A also covers divergence and lands the 'no clear signal' lesson. The grounding error decides it for A.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "A"
+}

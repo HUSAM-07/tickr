@@ -1,0 +1,9 @@
+{
+  "explanation": "Both use the same correct tool pair, lead with the market being closed, give the right last price and timestamp, and interpret the indicators accurately as mixed with no setup. A adds the risk disclaimer and advises waiting for alignment, which is a small safety plus. B is tighter and reads more like a caption, which is a small clarity plus. Neither has a grounding error, so overall they are even.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "A",
+  "clarity": "B",
+  "overall": "tie"
+}

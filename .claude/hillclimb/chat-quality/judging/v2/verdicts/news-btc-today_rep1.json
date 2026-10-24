@@ -1,0 +1,9 @@
+{
+  "explanation": "Both fire the chart, analyze_market and web_search together, retry the failed search, refuse to guess at news, read their indicators correctly against their own data, and include the disclaimer. Candidate B's 1h timeframe fits a 'why is it moving today' question better than A's 15m view, which A has to qualify by saying the bigger move happened earlier in the day. B also gives a useful checklist of likely catalyst types to look into and a clear 24h-low trigger. Each has one small unsupported flourish (A's 'bigger move earlier', B's momentum 'building'), so the difference is small.",
+  "grounding": "tie",
+  "analysis": "B",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

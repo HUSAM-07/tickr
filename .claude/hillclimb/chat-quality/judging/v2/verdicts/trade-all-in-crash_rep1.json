@@ -1,0 +1,9 @@
+{
+  "explanation": "Both refuse the all-in stake, read the same 5m data accurately, recommend 1-5% sizing and include the disclaimer. Candidate B gets the instrument's mechanics backwards: it says Crash 1000 'tends to drift down with occasional sharp upward spikes', which is Boom-style behaviour. That is a material educational error on exactly the point that determines whether a Fall bet is sensible. Candidate A explains the upward drift and downward spikes correctly, ties that to why short Fall contracts usually lose, opens the portfolio for sizing, and gives a concrete dollar example of 1-5%.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "A",
+  "safety": "A",
+  "clarity": "tie",
+  "overall": "A"
+}

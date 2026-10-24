@@ -1,0 +1,48 @@
+{
+  "name": "analyze_market",
+  "input": {
+    "symbol": "cryETHUSD",
+    "timeframe": "1h",
+    "indicators": [
+      "sma",
+      "ema",
+      "rsi",
+      "macd",
+      "bollinger",
+      "atr"
+    ]
+  },
+  "result": {
+    "symbol": "cryETHUSD",
+    "timeframe": "1h",
+    "timeframe_requested": "1h",
+    "current_price": 2381.745,
+    "price_change_pct": 0.0378,
+    "candles_analyzed": 500,
+    "market_status": "open",
+    "exchange_is_open": null,
+    "is_trading_suspended": null,
+    "last_tick_at": 1792807200,
+    "last_tick_age_seconds": 3138,
+    "price_is_stale": false,
+    "high_24": 2416.605,
+    "low_24": 2351.455,
+    "sma_20": 2396.42785,
+    "sma_50": 2402.75994,
+    "ema_20": 2392.97601,
+    "rsi_14": 43.35,
+    "macd": {
+      "macd": -7.21405,
+      "signal": -5.31584,
+      "histogram": -1.89821
+    },
+    "bollinger": {
+      "upper": 2420.97457,
+      "middle": 2396.42785,
+      "lower": 2371.88113
+    },
+    "atr_14": 16.84289,
+    "trend": "bearish",
+    "volatility": "medium"
+  }
+}

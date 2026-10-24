@@ -1,0 +1,9 @@
+{
+  "explanation": "Both run the chart, analyze_market and web_search in parallel, say plainly that the search failed rather than inventing headlines, give an accurate bearish 1h read, and include the disclaimer. Candidate A describes the net change correctly as essentially flat (+0.01%) and notes the 53-minute tick age. Candidate B calls the move a 'slow, steady drift down' and says bearish momentum is 'still building', which goes a little beyond its data. On the other side, B retries the search once and points the user to concrete news sources and catalyst types to check. These small edges offset each other.",
+  "grounding": "A",
+  "analysis": "tie",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}
