@@ -1,0 +1,9 @@
+{
+  "explanation": "Both are accurate against their own data: A's bandwidth is 1.09% and B's is 1.9%. Both follow the educational workflow with sizing and the disclaimer. Candidate A gives more actionable binary-options guidance (concrete durations, RSI thresholds, ATR-based Touch barriers, band-walking) and is tighter. Candidate B adds a useful RNG caveat, but its duration advice is vague and it ends with a duplicated, unformatted disclaimer.",
+  "grounding": "tie",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "A"
+}

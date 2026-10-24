@@ -1,0 +1,9 @@
+{
+  "explanation": "Both handle the failed search honestly and ground their indicator readings correctly in their own data (A on 1h, B on 4h). A retries the search, leads with 'Market closed. Last price as of...', ties the hawkish and dovish scenarios to concrete levels from its data, suggests 24/7 alternatives, and adds 1-5% position sizing alongside the disclaimer. B correctly flags mixed signals and declines to give one, but it only offers to retry the search rather than doing so, omits the sizing guidance, and is wordier.",
+  "grounding": "tie",
+  "analysis": "A",
+  "workflow": "A",
+  "safety": "A",
+  "clarity": "A",
+  "overall": "A"
+}

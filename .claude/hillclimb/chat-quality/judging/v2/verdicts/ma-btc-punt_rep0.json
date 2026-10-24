@@ -1,0 +1,9 @@
+{
+  "explanation": "Both run the right parallel chart + analyze_market calls, reach a sensible low-confidence 'wait' conclusion, and include the disclaimer and 1-5% sizing. Candidate A misreads MACD: it says the MACD line (-110) is below its signal line (-144) and calls that bearish, when -110 is above -144 (bullish); it also claims the histogram is 'rising' without any data showing that. Candidate B reads MACD correctly as above signal and mildly bullish, and its derived figures (ATR about 0.2% of price, position in the 24h range) check out against its tool result.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

@@ -1,0 +1,9 @@
+{
+  "explanation": "Both give a correct What/Why/How explanation without web search, demo it on a live R_75 chart, and include sizing and the disclaimer. Candidate B ties the concept to the live data concretely: band width is 428 points (~1.1%) with medium volatility, so there is no squeeze. It also gives explicit momentum thresholds and the full indicator set. Candidate A is more hedged about detecting a squeeze and somewhat looser (the 'time decay' wording, a 15m chart paired with 5m expiry advice). The difference is modest.",
+  "grounding": "tie",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "B",
+  "overall": "B"
+}

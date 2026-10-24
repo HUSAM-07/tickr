@@ -1,0 +1,9 @@
+{
+  "explanation": "Both call get_portfolio and give a short caption with useful follow-up offers. Each makes a generic, unverified claim about what the widget contains ('live P&L' vs 'performance summary'). They are effectively equivalent.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "tie"
+}

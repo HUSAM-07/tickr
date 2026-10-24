@@ -1,0 +1,9 @@
+{
+  "explanation": "A misreads its own MACD: it says the line (-0.17) is below the signal (-0.22), but the line is above it, as the positive histogram confirms. That error appears in both the signal card and the table. B reads all of its 5m indicators correctly, surfaces the SMA-cross conflict, and sizes the stake as 1-5% of balance. B's flaws are smaller: it calls the histogram 'widening' without support and passes trend 'bearish' to the card while the tool returned 'bullish'.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

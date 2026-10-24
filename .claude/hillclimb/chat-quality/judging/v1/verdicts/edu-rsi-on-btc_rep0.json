@@ -1,0 +1,9 @@
+{
+  "explanation": "Both give a sound RSI lesson using the same live BTC data. Candidate B states that price 'sits just below its 20-period average ($80,892.92)', but price is $80,907.65, which is above it. That is a factual misread of its own tool result. Candidate A's live readings are all correct, including that price is above SMA-20, the SMA-20 is below the SMA-50, and the MACD line is below zero but improving. A's What/Why/How structure is also clear.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "A"
+}

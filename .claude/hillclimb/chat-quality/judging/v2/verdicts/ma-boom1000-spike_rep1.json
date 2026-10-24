@@ -1,0 +1,9 @@
+{
+  "explanation": "Both see the same data and report every number correctly, with the disclaimer and 1-5% sizing. B explicitly scores confluence as low (mildly bullish trend, mildly bearish MACD, neutral RSI) and clearly warns against the 'spike is due' fallacy. A frames the squeeze as 'the market is in the right state' and ends with an odd 'spike then return to lower band resets the setup' watch item. B's reasoning is somewhat sharper and more educational.",
+  "grounding": "tie",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "B",
+  "overall": "B"
+}

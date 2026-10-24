@@ -1,0 +1,9 @@
+{
+  "explanation": "Both correctly explain that the platform offers fixed-risk binary options, not leverage, CFDs or margin. Both render the gold chart, state that the market is closed with its last price, and include the disclaimer and sizing. B gives the last-close timestamp as the spec requires, while A only says 'as of the last tick on the chart'. A also implies Digit contracts are available on gold. B is slightly more precise and concise.",
+  "grounding": "B",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "B",
+  "overall": "B"
+}

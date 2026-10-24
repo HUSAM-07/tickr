@@ -1,0 +1,9 @@
+{
+  "explanation": "Both run the full workflow (chart, analyze_market, get_signals with full indicator values), state conflicting indicators openly, and include the disclaimer and 1-5% sizing. A works on 15m data and makes a cautious low-confidence call, but its widget suggests a 30-tick duration that doesn't fit a 15m trend read where momentum (MACD) is bullish. B's medium-confidence call fits the framework, but it again claims an unsupported 'widening' histogram. These small flaws roughly cancel out.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "B",
+  "overall": "tie"
+}

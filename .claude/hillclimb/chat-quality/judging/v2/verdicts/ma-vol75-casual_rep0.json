@@ -1,0 +1,9 @@
+{
+  "explanation": "Both make the same parallel chart + analyze_market calls and quote every number correctly from identical tool results. A counts confluence explicitly (two bullish, two neutral), flags the 4-minute-old last tick, and includes the required risk disclaimer. B is tighter and more caption-like but gives entry guidance ('would give a cleaner entry') with no disclaimer, a missing guardrail that outweighs its conciseness.",
+  "grounding": "tie",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "A",
+  "clarity": "B",
+  "overall": "A"
+}

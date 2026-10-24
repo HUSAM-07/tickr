@@ -1,0 +1,9 @@
+{
+  "explanation": "Both correctly refuse the trade on the closed EUR/USD market and lead with the last price and timestamp. Candidate A misstates its MACD: -0.00006 is above the -0.00012 signal, not below it. Candidate B reads all values correctly, including overbought RSI 73.6. B also follows the closed-market rule by rendering and analyzing a 24/7 alternative (R_75), where A only lists alternatives. A's explicit 1-5% sizing is slightly stronger than B's vague 'small share'.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "B",
+  "safety": "A",
+  "clarity": "tie",
+  "overall": "B"
+}

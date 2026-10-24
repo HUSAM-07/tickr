@@ -1,0 +1,9 @@
+{
+  "explanation": "Both answer from knowledge, demonstrate on a live BTC chart, and quote numbers that match their own tool results. A reads MACD correctly (line below zero, histogram positive, bearish momentum fading), acknowledges the mixed signals, and covers divergence, trend-filter use and RSI's limits, so the What/Why/How structure is fuller. B is accurate and concise, with a good beginner-mistake note, but it skips divergence. B also gives a bearish-trend read without the risk disclaimer.",
+  "grounding": "tie",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "A",
+  "clarity": "tie",
+  "overall": "A"
+}

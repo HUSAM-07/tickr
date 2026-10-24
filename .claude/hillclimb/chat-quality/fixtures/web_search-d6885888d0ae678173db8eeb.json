@@ -1,0 +1,10 @@
+{
+  "name": "web_search",
+  "input": {
+    "query": "Federal Reserve latest FOMC rate decision statement and impact on EUR/USD",
+    "count": 5
+  },
+  "result": {
+    "error": "Search failed: 422 "
+  }
+}

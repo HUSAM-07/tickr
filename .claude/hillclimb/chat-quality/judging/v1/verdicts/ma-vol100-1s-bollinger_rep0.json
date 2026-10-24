@@ -1,0 +1,9 @@
+{
+  "explanation": "Both rendered the requested Bollinger chart in parallel with analysis, each on a sensible interval. Candidate A's numbers and readings all match its tool data (price near the upper band, bullish SMA stack, RSI 64.9 not overbought, MACD above signal), and it lays out band-walk versus mean reversion clearly with the disclaimer. Candidate B says the MACD line (-2.28) is below its signal (-2.93), which is wrong, and it drops the risk disclaimer despite suggesting entry conditions. B's note on tick staleness is a nice touch but doesn't offset those.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "A",
+  "clarity": "A",
+  "overall": "A"
+}

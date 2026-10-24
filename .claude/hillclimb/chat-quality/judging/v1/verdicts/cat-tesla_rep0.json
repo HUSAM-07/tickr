@@ -1,0 +1,9 @@
+{
+  "explanation": "Both state clearly that Tesla is not offered and point to OTC_NDX as the closest alternative. A also renders the proxy chart and analysis in parallel, leads with the closed-market status and last-close time, cites numbers that all match its tool result, says there is no clear signal, and suggests 24/7 alternatives with a disclaimer. B makes no tool calls and only offers to show the chart, which goes against the chart-first mandate.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "A",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "A"
+}

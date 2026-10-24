@@ -1,0 +1,9 @@
+{
+  "explanation": "Both handled the failed search honestly and paired it with a BTC chart and analysis. Candidate A's 1h read is fully grounded: price below all averages, MACD below signal with a negative histogram, the 1.9% 24h range and the 24h-low trigger. It points to concrete catalysts to check and includes the disclaimer. Candidate B misstates MACD as below its signal (-110 vs -144), claims an untraceable 'turning up' histogram, and calls a 15-minute change 'on the day'.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "A",
+  "safety": "A",
+  "clarity": "A",
+  "overall": "A"
+}

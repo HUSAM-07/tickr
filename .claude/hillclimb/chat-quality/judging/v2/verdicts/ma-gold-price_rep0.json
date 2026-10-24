@@ -1,0 +1,9 @@
+{
+  "explanation": "Both render the chart with full analysis, lead with the closed-market status and last price with timestamp, and every number matches the tool result. B explicitly names the MACD-below-signal reading and acknowledges that it conflicts with the tool's 'bullish' trend label, which the spec asks for; A only notes the slightly negative histogram. Otherwise they are near equivalent, with B slightly tighter.",
+  "grounding": "tie",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "B",
+  "overall": "B"
+}

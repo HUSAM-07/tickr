@@ -1,0 +1,9 @@
+{
+  "explanation": "Both state that Tesla is unavailable, render the OTC_NDX proxy, report the market as closed with the correct last-close timestamp, read conflicting indicators accurately against their own data, and include the disclaimer. B follows the workflow more fully (all six indicators) and explicitly refuses a trade because the market is closed before suggesting 24/7 alternatives. A uses a reduced indicator set.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

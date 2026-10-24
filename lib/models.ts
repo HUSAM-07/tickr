@@ -8,11 +8,11 @@ export type ModelConfig = {
 
 export const MODELS: ModelConfig[] = [
   {
-    id: "claude-sonnet-5-5",
-    name: "Claude Sonnet 5.5",
-    description: "Anthropic's fast, capable model for analysis and tool use",
-    inputCost: "$2.00",
-    outputCost: "$10.00",
+    id: "claude-haiku-5-5",
+    name: "Claude Haiku 5.5",
+    description: "Anthropic's fastest, lowest-cost model for chat and tool use",
+    inputCost: "$0.10",
+    outputCost: "$0.50",
   },
 ]
 

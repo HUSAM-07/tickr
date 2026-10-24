@@ -1,0 +1,9 @@
+{
+  "explanation": "Both show the chart with Bollinger Bands and include the disclaimer. Candidate A asks analyze_market for only four indicators instead of the spec's full set. It also overstates its own data: it says price is 'pressing against the upper band' when price is about 3.6 points below it, roughly midway between the middle and upper bands. And it calls a 1.5% band width a compression or squeeze while its tool reports medium volatility. Candidate B's band, SMA, RSI and MACD readings match its data; its only slip is calling the histogram 'rising' without history to show it.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "B"
+}

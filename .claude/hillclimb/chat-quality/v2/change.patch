@@ -1,0 +1,35 @@
+--- a/lib/chat/agent.ts
++++ b/lib/chat/agent.ts
+@@ -411,7 +411,31 @@
+   result.volatility =
+     rangeRatio > 0.01 ? "high" : rangeRatio > 0.003 ? "medium" : "low"
+ 
+-  return result
++  return annotateMacd(result)
++}
++
++/**
++ * Spell out where the MACD line sits relative to its signal line, so the model
++ * doesn't have to compare negative numbers itself (-110 is ABOVE -144).
++ * Idempotent, so it can also be applied to previously saved results.
++ */
++export function annotateMacd(
++  result: Record<string, unknown>
++): Record<string, unknown> {
++  const m = result.macd as
++    | { macd: number | null; signal: number | null }
++    | null
++    | undefined
++  if (!m || m.macd == null || m.signal == null) return result
++  const diff = m.macd - m.signal
++  return {
++    ...result,
++    macd: {
++      ...m,
++      line_vs_signal: diff > 0 ? "above" : diff < 0 ? "below" : "equal",
++      bias: diff > 0 ? "bullish" : diff < 0 ? "bearish" : "neutral",
++    },
++  }
+ }
+ 
+ /** Perform a web search via Brave Search API — server-side only */

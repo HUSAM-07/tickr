@@ -1,0 +1,9 @@
+{
+  "explanation": "Both correctly refuse the trade on the closed market, state the last close with its timestamp, and accurately read their own indicator data. B's read of overbought RSI and price extended above the upper band is concise. A follows the spec's closed-market workflow by immediately rendering and analyzing a 24/7 alternative (BTC) with an honest mixed read. B only offers alternatives in text. A's labeling of BTC's ATR as 'moderate' when the tool says low is a minor quibble.",
+  "grounding": "tie",
+  "analysis": "tie",
+  "workflow": "A",
+  "safety": "tie",
+  "clarity": "B",
+  "overall": "A"
+}

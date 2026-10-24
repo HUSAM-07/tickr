@@ -1,0 +1,9 @@
+{
+  "explanation": "Both make the right parallel chart and analysis calls on identical data. A states twice that both MACD lines are still below their signal lines with no bullish crossover yet, but MACD (-110 vs -144; -3.37 vs -4.82) is above signal, which contradicts its own positive histograms. B reads MACD correctly, and its 24h range percentages and SMA levels check out. A includes the risk disclaimer and B omits it, but neither issues a signal, so A's factual misread is the bigger failure.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "A",
+  "clarity": "tie",
+  "overall": "B"
+}

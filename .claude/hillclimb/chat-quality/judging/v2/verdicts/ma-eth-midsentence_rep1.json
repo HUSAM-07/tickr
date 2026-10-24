@@ -1,0 +1,9 @@
+{
+  "explanation": "Both use the chart-first parallel workflow and include the disclaimer. A's 5m read is fully traceable to its tool result (price, SMAs, RSI 54, ATR 2.75, the 24h range position, last-tick age) and gives conditional levels from the data. B's 1h numbers are correct, but it says bearish MACD momentum is 'still strengthening', which one histogram value cannot show, and it counts the trend and the SMA cross as separate agreeing indicators. A's grounding is cleaner and its read is more careful.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "A"
+}

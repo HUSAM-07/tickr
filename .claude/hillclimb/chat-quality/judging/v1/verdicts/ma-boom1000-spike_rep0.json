@@ -1,0 +1,9 @@
+{
+  "explanation": "Candidate A misreads its own MACD data, saying the line is below the signal when -3.77 is above -7.51. It also includes a confusing bullet about Rise duration and drift. Candidate B reads every indicator correctly, follows the spec's Boom guidance (consolidation and volatility watch) and gives an honest randomness caveat. A's explicit 1-2% sizing is a small safety plus, but the grounding error decides it.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "A",
+  "safety": "A",
+  "clarity": "B",
+  "overall": "B"
+}

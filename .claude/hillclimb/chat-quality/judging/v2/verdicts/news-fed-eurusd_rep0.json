@@ -1,0 +1,9 @@
+{
+  "explanation": "Both handle the failed search honestly without inventing the Fed decision, render the EUR/USD chart, and give accurate Fed-to-FX mechanics with the disclaimer. A retries the search, leads with the closed-market timestamp, renders both SMAs, and notes it can't trade the closed market while suggesting 24/7 alternatives. B omits the last_tick timestamp, assumes 'closed for the weekend' without support from the tool data, and loosely says price is 'near the middle band' when it sits between the middle and lower bands.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "A",
+  "safety": "A",
+  "clarity": "tie",
+  "overall": "A"
+}

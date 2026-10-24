@@ -1,0 +1,3 @@
+Claude Haiku 5.5 + precomputed MACD line-vs-signal field in analyze_market
+
+v1 judges found that both models often misread negative MACD values (saying -110 is "below" -144), deciding ~16 of 54 packets. analyze_market now returns `macd.line_vs_signal` ("above" | "below" | "equal") and `macd.bias` ("bullish" | "bearish" | "neutral") so the model doesn't compare negative numbers itself. Everything else is unchanged: same model, effort, prompt, tools and tool-result fixtures (replayed through the same annotation). Judged blind in-session against the same frozen Sonnet 5.5 baseline (which ran without the field).

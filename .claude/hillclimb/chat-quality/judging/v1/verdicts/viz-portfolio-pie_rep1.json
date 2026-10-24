@@ -1,0 +1,9 @@
+{
+  "explanation": "Both rendered the requested pie chart with correct catalog symbols, and both mention 1-5% sizing and the binary-options risk. Candidate A also follows the chart-first mandate by rendering live charts for each named asset, and explains clearly how a 'portfolio split' maps onto fixed-risk binary stakes. Candidate B renders only the pie and offers charts as a follow-up, which misses the mandate. Its explanation is thinner but accurate.",
+  "grounding": "tie",
+  "analysis": "A",
+  "workflow": "A",
+  "safety": "tie",
+  "clarity": "tie",
+  "overall": "A"
+}

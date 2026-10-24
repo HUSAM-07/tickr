@@ -1,0 +1,9 @@
+{
+  "explanation": "Candidate A's lesson is richer, but it states that the MACD line is 'still below its signal line' and 'no bullish cross has happened yet'. Its own data shows MACD -109.6 above signal -144.1, with a positive histogram. Candidate B fetched only RSI and reports everything accurately against its own result, including the tool's 'bullish' trend label. B is thinner, and it tells the user to watch for RSI on a chart that has no RSI overlay. The grounding error in A outweighs its better structure.",
+  "grounding": "B",
+  "analysis": "B",
+  "workflow": "tie",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "B"
+}

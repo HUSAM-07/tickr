@@ -1,0 +1,10 @@
+{
+  "name": "web_search",
+  "input": {
+    "query": "Fed FOMC rate decision October 2026",
+    "count": 5
+  },
+  "result": {
+    "error": "Search failed: 422 "
+  }
+}

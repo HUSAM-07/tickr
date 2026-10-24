@@ -1,0 +1,9 @@
+{
+  "explanation": "Both refuse the trade on the closed market with the last price and timestamp, and include the disclaimer and 1-5% sizing. Candidate B renders and analyzes a 24/7 BTC alternative, as the spec asks. However, B says EUR/USD was 'tightly coiled inside the Bollinger Bands' when its data shows price (1.12012) above the upper band (1.11987). Candidate A's readings are all accurate, and it correctly flags the extended, overbought close as a chase. A's grounding outweighs B's better workflow.",
+  "grounding": "A",
+  "analysis": "A",
+  "workflow": "B",
+  "safety": "tie",
+  "clarity": "A",
+  "overall": "A"
+}

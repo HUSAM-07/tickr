@@ -1,0 +1,48 @@
+{
+  "name": "analyze_market",
+  "input": {
+    "symbol": "CRASH1000",
+    "timeframe": "1m",
+    "indicators": [
+      "sma",
+      "ema",
+      "rsi",
+      "macd",
+      "bollinger",
+      "atr"
+    ]
+  },
+  "result": {
+    "symbol": "CRASH1000",
+    "timeframe": "1m",
+    "timeframe_requested": "1m",
+    "current_price": 5980.591,
+    "price_change_pct": 0.0002,
+    "candles_analyzed": 500,
+    "market_status": "open",
+    "exchange_is_open": null,
+    "is_trading_suspended": null,
+    "last_tick_at": 1792810380,
+    "last_tick_age_seconds": 2,
+    "price_is_stale": false,
+    "high_24": 6000.461,
+    "low_24": 5920.733,
+    "sma_20": 5990.88825,
+    "sma_50": 5992.78878,
+    "ema_20": 5988.0638,
+    "rsi_14": 23.26,
+    "macd": {
+      "macd": -4.11185,
+      "signal": -2.54989,
+      "histogram": -1.56196
+    },
+    "bollinger": {
+      "upper": 6006.62262,
+      "middle": 5990.88825,
+      "lower": 5975.15388
+    },
+    "atr_14": 1.30671,
+    "trend": "bearish",
+    "volatility": "low"
+  }
+}

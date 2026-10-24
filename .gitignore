@@ -39,3 +39,11 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# eval bulk / derived output (regenerate with evals/chat-quality runner + report builder)
+.claude/hillclimb/**/traces/
+.claude/hillclimb/**/packets/
+.claude/hillclimb/**/report.html
+.claude/hillclimb/**/trajectory/
+.claude/hillclimb/**/*-run.log
+.claude/hillclimb/**/progress.txt
